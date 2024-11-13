@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <StartupObject>ClippyWeb.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AiService\LocalAiService.csproj" />
+    <ProjectReference Include="..\SemanticKernelHelper\SemanticKernelHelper.csproj" />
+    <ProjectReference Include="..\SharedInterfaces\SharedInterfaces.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MarkdownSharp" Version="2.0.5" />
+		<PackageReference Include="Microsoft.AspNet.Razor" Version="3.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\images\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="wwwroot\images\bouncing_ball.gif" />
+	  <None Include="wwwroot\images\Connect.gif" />
+	  <None Include="wwwroot\images\Winflag.gif" />
+	  <None Include="wwwroot\images\wow.gif" />
+	</ItemGroup>
+
+</Project>

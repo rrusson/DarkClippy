@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35209.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClippyWeb", "ClippyWeb\ClippyWeb.csproj", "{C959549A-E925-4A18-BEEA-3F94B54D6F04}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticKernelHelper", "SemanticKernelHelper\SemanticKernelHelper.csproj", "{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalAiService", "AiService\LocalAiService.csproj", "{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedInterfaces", "SharedInterfaces\SharedInterfaces.csproj", "{6A805096-9F7B-48F7-9A31-2970B41E5121}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E6F2216-152D-42AE-B60E-29C810CDB4B1}"
+	ProjectSection(SolutionItems) = preProject
+		DarkClippy.png = DarkClippy.png
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{B4B61B48-5A0C-4920-81DA-17FFB772EEEE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C959549A-E925-4A18-BEEA-3F94B54D6F04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C959549A-E925-4A18-BEEA-3F94B54D6F04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C959549A-E925-4A18-BEEA-3F94B54D6F04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C959549A-E925-4A18-BEEA-3F94B54D6F04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4B61B48-5A0C-4920-81DA-17FFB772EEEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4B61B48-5A0C-4920-81DA-17FFB772EEEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4B61B48-5A0C-4920-81DA-17FFB772EEEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4B61B48-5A0C-4920-81DA-17FFB772EEEE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EE7458D1-3D0D-48C6-A497-160D1AA1D279}
+	EndGlobalSection
+EndGlobal
