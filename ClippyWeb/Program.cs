@@ -1,10 +1,8 @@
 using SharedInterfaces;
 
-using System.Configuration;
 using Serilog;
 using Serilog.Events;
 
-using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ClippyWeb.Util;
 
 namespace ClippyWeb
@@ -14,7 +12,8 @@ namespace ClippyWeb
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
-			SetupLogging();
+			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+			SetupLogging(builder.Configuration);
 
 			try
 			{
@@ -32,7 +31,6 @@ namespace ClippyWeb
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 				});
 
-				builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 				ConnectionValidator.ValidateConnection(builder.Configuration);
 
 				builder.Services.AddSingleton<IChatClient>(provider =>
@@ -40,13 +38,13 @@ namespace ClippyWeb
 					string? serviceUrl = builder.Configuration["ServiceUrl"];
 					if (string.IsNullOrEmpty(serviceUrl))
 					{
-						throw new System.Configuration.ConfigurationErrorsException("Please supply a config value for ServiceUrl.");
+						throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
 					}
 
 					string? model = builder.Configuration["Model"];
 					if (string.IsNullOrEmpty(model))
 					{
-						throw new ConfigurationErrorsException("Please supply a config value for Model.");
+						throw new InvalidOperationException("Please supply a config value for Model.");
 					}
 
 					Log.Information($"Connecting to LLM service at: {serviceUrl} with model: {model}");
@@ -84,9 +82,9 @@ namespace ClippyWeb
 			}
 		}
 
-		private static void SetupLogging()
+		private static void SetupLogging(IConfiguration configuration)
 		{
-			string logPath = ConfigurationManager.AppSettings["LogPath"] ?? "C:\\temp\\clippyLog\\";
+			string logPath = configuration["LogPath"] ?? "C:\\temp\\clippyLog\\";
 
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Information()
