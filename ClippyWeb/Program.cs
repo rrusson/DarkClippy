@@ -1,9 +1,11 @@
 using SharedInterfaces;
 
 using System.Configuration;
-using System.Reflection;
+using Serilog;
+using Serilog.Events;
 
 using ConfigurationManager = System.Configuration.ConfigurationManager;
+using ClippyWeb.Util;
 
 namespace ClippyWeb
 {
@@ -12,55 +14,92 @@ namespace ClippyWeb
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
+			SetupLogging();
 
-			// Add services to the container.
-			builder.Services.AddControllers();
-
-			// Add Razor Pages services
-			builder.Services.AddRazorPages();
-
-			// Add NewtonSoftJson for JSON serialization
-			builder.Services.AddControllers().AddNewtonsoftJson();
-
-			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-			// Add the singleton services before building the app
-			builder.Services.AddSingleton<IChatClient>(provider =>
+			try
 			{
-				string? serviceUrl = builder.Configuration["ServiceUrl"];
-				if (string.IsNullOrEmpty(serviceUrl))
+				builder.Host.UseSerilog();
+
+				// Enable reflection-based serialization for System.Text.Json
+				// This is required for the OpenAI library to work correctly in production
+				// Without this, you'll get: "System.InvalidOperationException: Reflection-based serialization has been disabled for this application"
+				AppContext.SetSwitch("System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault", true);
+
+				builder.Services.AddControllers();
+				builder.Services.AddRazorPages();
+				builder.Services.AddControllers().AddNewtonsoftJson();
+				builder.Services.ConfigureHttpJsonOptions(options =>
 				{
-					throw new System.Configuration.ConfigurationErrorsException("Please supply a config value for ServiceUrl.");
+					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+				});
+
+				builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+				ConnectionValidator.ValidateConnection(builder.Configuration);
+
+				builder.Services.AddSingleton<IChatClient>(provider =>
+				{
+					string? serviceUrl = builder.Configuration["ServiceUrl"];
+					if (string.IsNullOrEmpty(serviceUrl))
+					{
+						throw new System.Configuration.ConfigurationErrorsException("Please supply a config value for ServiceUrl.");
+					}
+
+					string? model = builder.Configuration["Model"];
+					if (string.IsNullOrEmpty(model))
+					{
+						throw new ConfigurationErrorsException("Please supply a config value for Model.");
+					}
+
+					Log.Information($"Connecting to LLM service at: {serviceUrl} with model: {model}");
+
+					//return new LocalAiService.ChatClient>(serviceUrl, model);
+					return new SemanticKernelHelper.SemanticKernalClient(serviceUrl, model);
+				});
+
+				var app = builder.Build();
+
+				if (!app.Environment.IsDevelopment())
+				{
+					app.UseExceptionHandler("/Error");
+					app.UseHsts();
 				}
 
-				string? model = builder.Configuration["Model"];
-				if (string.IsNullOrEmpty(model))
-				{
-					throw new ConfigurationErrorsException("Please supply a config value for Model.");
-				}
+				//app.UseHttpsRedirection();
+				app.UseStaticFiles();
+				app.UseRouting();
+				app.UseAuthorization();
 
-				//return new LocalAiService.ChatClient>(serviceUrl, model);
-				return new SemanticKernelHelper.SemanticKernalClient(serviceUrl, model);
-			});
+				app.MapControllers();
+				app.MapRazorPages();
 
-			var app = builder.Build();
-
-			// Configure the HTTP request pipeline.
-			if (!app.Environment.IsDevelopment())
-			{
-				app.UseExceptionHandler("/Error");
-				app.UseHsts();
+				Log.Information("Application starting up");
+				app.Run();
 			}
+			catch (Exception ex)
+			{
+				Log.Fatal(ex, "Application start-up failed");
+			}
+			finally
+			{
+				Log.CloseAndFlush();
+			}
+		}
 
-			//app.UseHttpsRedirection();
-			app.UseStaticFiles();
-			app.UseRouting();
-			app.UseAuthorization();
+		private static void SetupLogging()
+		{
+			string logPath = ConfigurationManager.AppSettings["LogPath"] ?? "C:\\temp\\clippyLog\\";
 
-			app.MapControllers();
-			app.MapRazorPages();
-
-			app.Run();
+			Log.Logger = new LoggerConfiguration()
+				.MinimumLevel.Information()
+				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+				.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+				.WriteTo.Console()
+				.WriteTo.File(@$"{logPath}clippy.log",
+					rollingInterval: RollingInterval.Day,
+					fileSizeLimitBytes: 10 * 1024 * 1024,
+					retainedFileCountLimit: 30,
+					outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+				.CreateLogger();
 		}
 	}
 }
