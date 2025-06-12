@@ -25,9 +25,8 @@ namespace ClippyWeb
 				// Without this, you'll get: "System.InvalidOperationException: Reflection-based serialization has been disabled for this application"
 				AppContext.SetSwitch("System.Text.Json.JsonSerializer.IsReflectionEnabledByDefault", true);
 
-				builder.Services.AddControllers();
-				builder.Services.AddRazorPages();
 				builder.Services.AddControllers().AddNewtonsoftJson();
+				builder.Services.AddRazorPages();
 				builder.Services.ConfigureHttpJsonOptions(options =>
 				{
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
