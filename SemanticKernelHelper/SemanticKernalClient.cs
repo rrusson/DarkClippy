@@ -19,9 +19,6 @@ namespace SemanticKernelHelper
 			// Create a kernel with OpenAI chat completion
 			Kernel kernel = Kernel.CreateBuilder()
 							.AddOpenAIChatCompletion(
-								//modelId: "phi3:mini",
-								//modelId: "hf.co/SanctumAI/Meta-Llama-3.1-8B-Instruct-GGUF:Q2_K",
-								//modelId: "HammerAI/neuraldaredevil-abliterated",
 								modelId: _model,
 								endpoint: new Uri(_apiUrl),
 								apiKey: "")

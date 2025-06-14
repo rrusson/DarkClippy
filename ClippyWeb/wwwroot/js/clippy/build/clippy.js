@@ -663,9 +663,8 @@ clippy.Balloon = function (targetEl) {
 };
 
 clippy.Balloon.prototype = {
-
-    WORD_SPEAK_TIME:320,
-    CLOSE_BALLOON_DELAY:2000,
+    WORD_SPEAK_TIME:300,
+    CLOSE_BALLOON_DELAY:15000,
 
     _setup:function () {
 
@@ -842,13 +841,24 @@ clippy.Balloon.prototype = {
     }
 };
 
-/*clippy.BASE_PATH = './js/clippy/agents/';*/
 
-//RR: Custom code to get the current subsite folder name for my Clippy implementation
-//let subsiteFolder = window.location.pathname.split('/')[1];
-//clippy.BASE_PATH = './' + subsiteFolder + '/js/clippy/agents/';
-
-clippy.BASE_PATH = 'http://RyanRusson.com/ClippyWeb/js/clippy/agents/';
+// Set BASE_PATH based on current subsite folder name for Clippy implementation using a protocol-relative URL
+(function() {
+    var basePath = './js/clippy/agents/';
+    
+    // Find the path based on the script tag
+    var scripts = document.getElementsByTagName('script');
+    for (var i = 0; i < scripts.length; i++) {
+        var src = scripts[i].src;
+        if (src.indexOf('clippy.js') !== -1) {
+            var path = src.substring(0, src.indexOf('js/clippy/build'));
+            basePath = path + 'js/clippy/agents/';
+            break;
+        }
+    }
+    
+    clippy.BASE_PATH = basePath;
+})();
 
 clippy.load = function (name, successCb, failCb) {
     var path = clippy.BASE_PATH + name;
