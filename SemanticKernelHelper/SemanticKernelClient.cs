@@ -8,7 +8,7 @@ using System.Text;
 
 namespace SemanticKernelHelper
 {
-	public class SemanticKernalClient(string apiUrl, string model) : IChatClient
+	public class SemanticKernelClient(string apiUrl, string model) : IChatClient
 	{
 		private readonly string _apiUrl = apiUrl;
 		private readonly string _model = model;
@@ -26,7 +26,7 @@ namespace SemanticKernelHelper
 
 			IChatCompletionService aiChatService = kernel.GetRequiredService<IChatCompletionService>();
 
-			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, but correct, short answers to questions. And you swear a lot.";
+			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, short answers to questions. And you swear a lot.";
 			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, systemPrompt));
 
 			// Consider persisting the chat history for more coherent conversations

@@ -50,7 +50,7 @@ namespace ClippyWeb
 					Log.Information($"Connecting to LLM service at: {serviceUrl} with model: {model}");
 
 					//return new LocalAiService.ChatClient>(serviceUrl, model);
-					return new SemanticKernelHelper.SemanticKernalClient(serviceUrl, model);
+					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
 				});
 
 				var app = builder.Build();
