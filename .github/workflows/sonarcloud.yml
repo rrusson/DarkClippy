@@ -73,7 +73,8 @@ jobs:
 
       # Fail the job if the Quality Gate fails (supports SonarCloud via SONAR_HOST_URL)
       - name: SonarCloud Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@v1.1.0
+        # Pinned to commit SHA for security (v1.1.0)
+        uses: SonarSource/sonarqube-quality-gate-action@e2183f94f772fd13a28ffb4c9cbb42237b0e8cc2
         timeout-minutes: 10
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
