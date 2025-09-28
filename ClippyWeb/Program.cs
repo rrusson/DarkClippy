@@ -1,8 +1,8 @@
+using Microsoft.Extensions.Configuration;
 using SharedInterfaces;
 
 using Serilog;
 using Serilog.Events;
-
 using ClippyWeb.Util;
 
 namespace ClippyWeb
@@ -47,10 +47,10 @@ namespace ClippyWeb
 						throw new InvalidOperationException("Please supply a config value for Model.");
 					}
 
-					Log.Information($"Connecting to LLM service at: {serviceUrl} with model: {model}");
+					Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
 					//return new LocalAiService.ChatClient>(serviceUrl, model);
-					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model, _apiKey: "");
 				});
 
 				var app = builder.Build();
@@ -69,12 +69,12 @@ namespace ClippyWeb
 				app.MapControllers();
 				app.MapRazorPages();
 
-				Log.Information("Application starting up");
+				Log.Information("DarkClippy: Application starting up");
 				app.Run();
 			}
 			catch (Exception ex)
 			{
-				Log.Fatal(ex, "Application start-up failed");
+				Log.Fatal(ex, "DarkClippy: Application start-up failed");
 			}
 			finally
 			{
@@ -82,9 +82,9 @@ namespace ClippyWeb
 			}
 		}
 
-		private static void SetupLogging(IConfiguration configuration)
+		private static void SetupLogging(ConfigurationManager configuration)
 		{
-			string logPath = configuration["LogPath"] ?? "C:\\temp\\clippyLog\\";
+			string logPath = configuration["LogPath"] ?? "C:\\temp\\clippyWeb\\";
 
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Information()

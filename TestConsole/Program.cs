@@ -22,16 +22,16 @@ namespace TestConsole
 				throw new ConfigurationErrorsException("Please supply a config value for Model.");
 			}
 
-			var semanticClient = new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+			var semanticClient = new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model, _apiKey: "");
 			string? responseX = Task.Run(async () => await semanticClient.GetChatResponseAsync(question)).GetAwaiter().GetResult();
 			Console.WriteLine("Semantic Kernel sez:" + responseX + Environment.NewLine);
 
-			string lmStudioUrl = "http://localhost:1234/v1";
-			string lmStudioModel = "SanctumAI/Meta-Llama-3.1-8B-Instruct-GGUF";
-			var ollamaClient = new LocalAiService.ChatClient(lmStudioUrl, lmStudioModel);
+			//string lmStudioUrl = "http://localhost:1234/v1";
+			//string lmStudioModel = "SanctumAI/Meta-Llama-3.1-8B-Instruct-GGUF";
+			//var ollamaClient = new LocalAiService.ChatClient(lmStudioUrl, lmStudioModel);
 
-			string? response = Task.Run(async () => await ollamaClient.GetChatResponseAsync(question)).GetAwaiter().GetResult();
-			Console.WriteLine("Local AI Service sez:" + response + Environment.NewLine);
+			//string? response = Task.Run(async () => await ollamaClient.GetChatResponseAsync(question)).GetAwaiter().GetResult();
+			//Console.WriteLine("Local AI Service sez:" + response + Environment.NewLine);
 		}
 	}
 }
