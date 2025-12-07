@@ -1,9 +1,7 @@
 # :paperclip:Welcome to the Clipocalypse
 This is a basic chatbot using the Ollama API, with the added bonus of Dark Clippy.
-There are two implementations:
-* a simple one (LocalAiService.ChatClient) and
-* a second using the [MS SemanticKernal](https://github.com/microsoft/semantic-kernel) to access the Ollama API.
-It's a work in progress (at least until Clippy takes over).
+It uses [MS SemanticKernal](https://github.com/microsoft/semantic-kernel) to access an LLM running locally on Ollama.
+It's a work in progress (at least until Clippy takes over the world).
 
 Clippy is courtesy of the <a href="https://github.com/clippyjs/clippy.js">Clippy.js repo</a> (code originally by <a href="http://smore.com/">Smore.com</a>,
 Cinnamon Software and, of course, <a href="https://microsoft.com">Microsoft</a>).

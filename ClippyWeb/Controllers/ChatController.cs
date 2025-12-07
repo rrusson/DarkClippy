@@ -14,7 +14,7 @@ namespace ClippyWeb.Controllers
 	[Route("api/[controller]")]
 	public class ChatController : ControllerBase
 	{
-		private const object? RequestInProgressKey = null;
+		private const string RequestInProgressKey = nameof(RequestInProgressKey);
 		private readonly IChatClient _chatClient;
 		private readonly Markdown _markdownConverter = new();
 		private readonly IMemoryCache _cache;
@@ -31,13 +31,13 @@ namespace ClippyWeb.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Post([FromBody] string question)
 		{
-			if (_cache.Get<bool>(nameof(RequestInProgressKey)))
+			if (_cache.Get<bool>(RequestInProgressKey))
 			{
 				Log.Warning("[Request rejected due to existing request in progress]");
 				return StatusCode(StatusCodes.Status429TooManyRequests, "I'm kind of busy chatting with someone else. Try again later.");
 			}
 
-			_cache.Set(nameof(RequestInProgressKey), true);
+			_cache.Set(RequestInProgressKey, true);
 			Log.Information("Request lock acquired");
 
 			try
@@ -78,7 +78,7 @@ namespace ClippyWeb.Controllers
 			}
 			finally
 			{
-				_cache.Set(nameof(RequestInProgressKey), false);
+				_cache.Set(RequestInProgressKey, false);
 				Log.Information("Request lock released");
 			}
 		}

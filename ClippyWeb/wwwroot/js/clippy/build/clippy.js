@@ -41,7 +41,9 @@ clippy.Agent.prototype = {
             this._el.hide();
             this.stop();
             this.pause();
-            if (callback) callback();
+            if (callback) {
+                callback();
+            }
             return;
         }
 
@@ -55,7 +57,9 @@ clippy.Agent.prototype = {
     moveTo: function (x, y, duration) {
         const dir = this._getDirection(x, y);
         const anim = 'Move' + dir;
-        if (duration === undefined) duration = 1000;
+        if (duration === undefined) {
+            duration = 1000;
+        }
 
         this._addToQueue(function (complete) {
             // the simple case
@@ -104,10 +108,13 @@ clippy.Agent.prototype = {
     },
 
     play: function (animation, timeout, cb) {
-        if (!this.hasAnimation(animation)) return false;
+        if (!this.hasAnimation(animation)) {
+            return false;
+        }
 
-        if (timeout === undefined) timeout = 5000;
-
+        if (timeout === undefined) {
+            timeout = 5000;
+        }
 
         this._addToQueue(function (complete) {
             let completed = false;
@@ -122,7 +129,7 @@ clippy.Agent.prototype = {
 
             // if has timeout, register a timeout function
             if (timeout) {
-                window.setTimeout($.proxy(function () {
+                globalThis.setTimeout($.proxy(function () {
                     if (completed) return;
                     // exit after timeout
                     this._animator.exitAnimation();
@@ -149,8 +156,8 @@ clippy.Agent.prototype = {
         }
 
         if (this._el.css('top') === 'auto' || this._el.css('left') !== 'auto') {
-            let left = $(window).width() * 0.8;
-            let top = ($(window).height() + $(document).scrollTop()) * 0.8;
+            let left = $(globalThis).width() * 0.8;
+            let top = ($(globalThis).height() + $(document).scrollTop()) * 0.8;
             this._el.css({top: top, left: left});
         }
 
@@ -175,12 +182,10 @@ clippy.Agent.prototype = {
         this._balloon.hide();
     },
 
-    delay: function (time) {
-        time = time || 250;
-
+    delay: function (time = 250) {
         this._addToQueue(function (complete) {
             this._onQueueEmpty();
-            window.setTimeout(complete, time);
+            globalThis.setTimeout(complete, time);
         });
     },
 
@@ -200,7 +205,6 @@ clippy.Agent.prototype = {
     },
 
     /***
-     *
      * @param {String} name
      * @returns {Boolean}
      */
@@ -210,7 +214,6 @@ clippy.Agent.prototype = {
 
     /***
      * Gets a list of animation names
-     *
      * @return {Array.<string>}
      */
     animations: function () {
@@ -225,7 +228,7 @@ clippy.Agent.prototype = {
         const animations = this.animations();
         const anim = animations[Math.floor(Math.random() * animations.length)];
         // skip idle animations
-        if (anim.indexOf('Idle') === 0) {
+        if (anim.startsWith('Idle')) {
             return this.animate();
         }
         return this.play(anim);
@@ -301,9 +304,9 @@ clippy.Agent.prototype = {
     _getIdleAnimation: function () {
         const animations = this.animations();
         const r = [];
-        for (let i = 0; i < animations.length; i++) {
-            const a = animations[i];
-            if (a.indexOf('Idle') === 0) {
+        for (const element of animations) {
+            const a = element;
+            if (a.startsWith('Idle')) {
                 r.push(a);
             }
         }
@@ -316,7 +319,7 @@ clippy.Agent.prototype = {
     /**************************** Events ************************************/
 
     _setupEvents: function () {
-        $(window).on('resize', $.proxy(this.reposition, this));
+        $(globalThis).on('resize', $.proxy(this.reposition, this));
         this._el.on('mousedown', $.proxy(this._onMouseDown, this));
         this._el.on('dblclick', $.proxy(this._onDoubleClick, this));
     },
@@ -333,10 +336,10 @@ clippy.Agent.prototype = {
         const bH = this._el.outerHeight();
         const bW = this._el.outerWidth();
 
-        const wW = $(window).width();
-        const wH = $(window).height();
-        const sT = $(window).scrollTop();
-        const sL = $(window).scrollLeft();
+        const wW = $(globalThis).width();
+        const wH = $(globalThis).height();
+        const sT = $(globalThis).scrollTop();
+        const sL = $(globalThis).scrollLeft();
 
         let top = o.top - sT;
         let left = o.left - sL;
@@ -374,10 +377,10 @@ clippy.Agent.prototype = {
         this._moveHandle = $.proxy(this._dragMove, this);
         this._upHandle = $.proxy(this._finishDrag, this);
 
-        $(window).on('mousemove', this._moveHandle);
-        $(window).on('mouseup', this._upHandle);
+        $(globalThis).on('mousemove', this._moveHandle);
+        $(globalThis).on('mouseup', this._upHandle);
 
-        this._dragUpdateLoop = window.setTimeout($.proxy(this._updateLocation, this), 10);
+        this._dragUpdateLoop = globalThis.setTimeout($.proxy(this._updateLocation, this), 10);
     },
 
     _calculateClickOffset: function (e) {
@@ -393,7 +396,7 @@ clippy.Agent.prototype = {
 
     _updateLocation: function () {
         this._el.css({top: this._targetY, left: this._taregtX});
-        this._dragUpdateLoop = window.setTimeout($.proxy(this._updateLocation, this), 10);
+        this._dragUpdateLoop = globalThis.setTimeout($.proxy(this._updateLocation, this), 10);
     },
 
     _dragMove: function (e) {
@@ -405,10 +408,10 @@ clippy.Agent.prototype = {
     },
 
     _finishDrag: function () {
-        window.clearTimeout(this._dragUpdateLoop);
+        globalThis.clearTimeout(this._dragUpdateLoop);
         // remove handles
-        $(window).off('mousemove', this._moveHandle);
-        $(window).off('mouseup', this._upHandle);
+        $(globalThis).off('mousemove', this._moveHandle);
+        $(globalThis).off('mouseup', this._upHandle);
         // resume animations
         this._balloon.show();
         this.reposition();
@@ -421,7 +424,6 @@ clippy.Agent.prototype = {
     },
 
     /**************************** Pause and Resume ************************************/
-
     pause: function () {
         this._animator.pause();
         this._balloon.pause();
@@ -435,8 +437,6 @@ clippy.Agent.prototype = {
 };
 
 /******
- *
- *
  * @constructor
  */
 clippy.Animator = function (el, path, data, sounds) {
@@ -485,10 +485,12 @@ clippy.Animator.prototype = {
     },
 
     preloadSounds: function (sounds) {
-        for (let i = 0; i < this._data.sounds.length; i++) {
-            const snd = this._data.sounds[i];
+        for (const element of this._data.sounds) {
+            const snd = element;
             const uri = sounds[snd];
-            if (!uri) continue;
+            if (!uri) {
+                continue;
+            }
             this._sounds[snd] = new Audio(uri);
 
         }
@@ -550,8 +552,8 @@ clippy.Animator.prototype = {
             return currentFrame.exitBranch;
         } else if (branching) {
             let rnd = Math.random() * 100;
-            for (let i = 0; i < branching.branches.length; i++) {
-                const branch = branching.branches[i];
+            for (const element of branching.branches) {
+                const branch = element;
                 if (rnd <= branch.weight) {
                     return branch.frameIndex;
                 }
@@ -587,7 +589,7 @@ clippy.Animator.prototype = {
 
         this._draw();
         this._playSound();
-        this._loop = window.setTimeout($.proxy(this._step, this), this._currentFrame.duration);
+        this._loop = globalThis.setTimeout($.proxy(this._step, this), this._currentFrame.duration);
 
         // fire events if the frames changed and we reached an end
         if (this._endCallback && frameChanged && this._atLastFrame()) {
@@ -603,7 +605,7 @@ clippy.Animator.prototype = {
      * Pause animation execution
      */
     pause: function () {
-        window.clearTimeout(this._loop);
+        globalThis.clearTimeout(this._loop);
     },
 
     /***
@@ -639,10 +641,12 @@ clippy.Balloon.prototype = {
     reposition: function () {
         const sides = ['top-left', 'top-right', 'bottom-left', 'bottom-right'];
 
-        for (let i = 0; i < sides.length; i++) {
-            const s = sides[i];
+        for (const element of sides) {
+            const s = element;
             this._position(s);
-            if (!this._isOut()) break;
+            if (!this._isOut()) {
+                break;
+            }
         }
     },
 
@@ -698,8 +702,8 @@ clippy.Balloon.prototype = {
         const bH = this._balloon.outerHeight();
         const bW = this._balloon.outerWidth();
 
-        const wW = $(window).width();
-        const wH = $(window).height();
+        const wW = $(globalThis).width();
+        const wH = $(globalThis).height();
         const sT = $(document).scrollTop();
         const sL = $(document).scrollLeft();
 
@@ -740,7 +744,7 @@ clippy.Balloon.prototype = {
             return;
         }
 
-        this._hiding = window.setTimeout($.proxy(this._finishHideBalloon, this), this.CLOSE_BALLOON_DELAY);
+        this._hiding = globalThis.setTimeout($.proxy(this._finishHideBalloon, this), this.CLOSE_BALLOON_DELAY);
     },
 
     _finishHideBalloon: function () {
@@ -773,7 +777,7 @@ clippy.Balloon.prototype = {
             } else {
                 el.text(words.slice(0, idx).join(' '));
                 idx++;
-                this._loop = window.setTimeout($.proxy(this._addWord, this), time);
+                this._loop = globalThis.setTimeout($.proxy(this._addWord, this), time);
             }
         }, this);
 
@@ -789,9 +793,9 @@ clippy.Balloon.prototype = {
     },
 
     pause: function () {
-        window.clearTimeout(this._loop);
+        globalThis.clearTimeout(this._loop);
         if (this._hiding) {
-            window.clearTimeout(this._hiding);
+            globalThis.clearTimeout(this._hiding);
             this._hiding = null;
         }
     },
@@ -800,7 +804,7 @@ clippy.Balloon.prototype = {
         if (this._addWord) {
             this._addWord();
         }
-        this._hiding = window.setTimeout($.proxy(this._finishHideBalloon, this), this.CLOSE_BALLOON_DELAY);
+        this._hiding = globalThis.setTimeout($.proxy(this._finishHideBalloon, this), this.CLOSE_BALLOON_DELAY);
     }
 };
 

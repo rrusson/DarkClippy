@@ -28,7 +28,7 @@ namespace ClippyWeb.Pages
             ViewData["ServiceUrl"] = _configuration["ServiceUrl"] ?? "Not configured";
             ViewData["ModelName"] = _configuration["Model"] ?? "Not configured";
             
-            Log.Warning($"Error page accessed. RequestId: {RequestId}");
+            Log.Warning("Error page accessed. RequestId: {RequestId}", RequestId);
         }
     }
 }

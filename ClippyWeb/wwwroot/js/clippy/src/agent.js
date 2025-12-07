@@ -1,32 +1,23 @@
 const clippy = {};
 
 /******
- *
- *
  * @constructor
  */
 clippy.Agent = function (path, data, sounds) {
     this.path = path;
-
     this._queue = new clippy.Queue($.proxy(this._onQueueEmpty, this));
-
     this._el = $('<div class="clippy"></div>').hide();
-
     $(document.body).append(this._el);
 
     this._animator = new clippy.Animator(this._el, path, data, sounds);
-
     this._balloon = new clippy.Balloon(this._el);
-
     this._setupEvents();
 };
 
 clippy.Agent.prototype = {
-
     /**************************** API ************************************/
 
     /***
-     *
      * @param {Number} x
      * @param {Number} y
      */
@@ -133,7 +124,7 @@ clippy.Agent.prototype = {
 
             // if has timeout, register a timeout function
             if (timeout) {
-                window.setTimeout($.proxy(function () {
+                globalThis.setTimeout($.proxy(function () {
                     if (completed) return;
                     // exit after timeout
                     this._animator.exitAnimation();
@@ -160,9 +151,9 @@ clippy.Agent.prototype = {
             return;
         }
 
-        if (this._el.css('top') === 'auto' || this._el.css('left') !== 'auto') {
-            const left = $(window).width() * 0.8;
-            const top = ($(window).height() + $(document).scrollTop()) * 0.8;
+        if (this._el.css('top') === 'auto' || this._el.css('left') === 'auto') {
+            const left = $(globalThis).width() * 0.8;
+            const top = ($(globalThis).height() + $(document).scrollTop()) * 0.8;
             this._el.css({top:top, left:left});
         }
 
@@ -188,12 +179,10 @@ clippy.Agent.prototype = {
         this._balloon.hide();
     },
 
-    delay:function (time) {
-        time = time || 250;
-
+    delay:function (time = 250) {
         this._addToQueue(function (complete) {
             this._onQueueEmpty();
-            window.setTimeout(complete, time);
+            globalThis.setTimeout(complete, time);
         });
     },
 
@@ -239,7 +228,7 @@ clippy.Agent.prototype = {
         const animations = this.animations();
         const anim = animations[Math.floor(Math.random() * animations.length)];
         // skip idle animations
-        if (anim.indexOf('Idle') === 0) {
+        if (anim.startsWith('Idle')) {
             return this.animate();
         }
         return this.play(anim);
@@ -319,9 +308,9 @@ clippy.Agent.prototype = {
     _getIdleAnimation:function () {
         const animations = this.animations();
         const r = [];
-        for (let i = 0; i < animations.length; i++) {
-            const a = animations[i];
-            if (a.indexOf('Idle') === 0) {
+        for (const element of animations) {
+            const a = element;
+            if (a.startsWith('Idle')) {
                 r.push(a);
             }
         }
@@ -334,10 +323,8 @@ clippy.Agent.prototype = {
     /**************************** Events ************************************/
 
     _setupEvents:function () {
-        $(window).on('resize', $.proxy(this.reposition, this));
-
+        $(globalThis).on('resize', $.proxy(this.reposition, this));
         this._el.on('mousedown', $.proxy(this._onMouseDown, this));
-
         this._el.on('dblclick', $.proxy(this._onDoubleClick, this));
     },
 
@@ -353,10 +340,10 @@ clippy.Agent.prototype = {
         const bH = this._el.outerHeight();
         const bW = this._el.outerWidth();
 
-        const wW = $(window).width();
-        const wH = $(window).height();
-        const sT = $(window).scrollTop();
-        const sL = $(window).scrollLeft();
+        const wW = $(globalThis).width();
+        const wH = $(globalThis).height();
+        const sT = $(globalThis).scrollTop();
+        const sL = $(globalThis).scrollLeft();
 
         let top = o.top - sT;
         let left = o.left - sL;
@@ -395,10 +382,10 @@ clippy.Agent.prototype = {
         this._moveHandle = $.proxy(this._dragMove, this);
         this._upHandle = $.proxy(this._finishDrag, this);
 
-        $(window).on('mousemove', this._moveHandle);
-        $(window).on('mouseup', this._upHandle);
+        $(globalThis).on('mousemove', this._moveHandle);
+        $(globalThis).on('mouseup', this._upHandle);
 
-        this._dragUpdateLoop = window.setTimeout($.proxy(this._updateLocation, this), 10);
+        this._dragUpdateLoop = globalThis.setTimeout($.proxy(this._updateLocation, this), 10);
     },
 
     _calculateClickOffset:function (e) {
@@ -414,7 +401,7 @@ clippy.Agent.prototype = {
 
     _updateLocation:function () {
         this._el.css({top:this._targetY, left:this._targetX});
-        this._dragUpdateLoop = window.setTimeout($.proxy(this._updateLocation, this), 10);
+        this._dragUpdateLoop = globalThis.setTimeout($.proxy(this._updateLocation, this), 10);
     },
 
     _dragMove:function (e) {
@@ -426,10 +413,10 @@ clippy.Agent.prototype = {
     },
 
     _finishDrag:function () {
-        window.clearTimeout(this._dragUpdateLoop);
+        globalThis.clearTimeout(this._dragUpdateLoop);
         // remove handles
-        $(window).off('mousemove', this._moveHandle);
-        $(window).off('mouseup', this._upHandle);
+        $(globalThis).off('mousemove', this._moveHandle);
+        $(globalThis).off('mouseup', this._upHandle);
         // resume animations
         this._balloon.show();
         this.reposition();

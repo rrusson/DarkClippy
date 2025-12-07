@@ -7,7 +7,7 @@ using ClippyWeb.Util;
 
 namespace ClippyWeb
 {
-	public class Program
+	public static class Program
 	{
 		public static void Main(string[] args)
 		{
@@ -60,7 +60,6 @@ namespace ClippyWeb
 					app.UseHsts();
 				}
 
-				//app.UseHttpsRedirection();
 				app.UseStaticFiles();
 				app.UseRouting();
 				app.UseAuthorization();
