@@ -49,8 +49,7 @@ namespace ClippyWeb
 
 					Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
-					//return new LocalAiService.ChatClient>(serviceUrl, model);
-					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model, _apiKey: "");
+					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
 				});
 
 				var app = builder.Build();

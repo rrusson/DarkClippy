@@ -14,7 +14,7 @@ namespace ClippyWeb.Controllers
 	[Route("api/[controller]")]
 	public class ChatController : ControllerBase
 	{
-		private const object RequestInProgressKey = null;
+		private const object? RequestInProgressKey = null;
 		private readonly IChatClient _chatClient;
 		private readonly Markdown _markdownConverter = new();
 		private readonly IMemoryCache _cache;

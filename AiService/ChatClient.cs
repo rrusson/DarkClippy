@@ -41,7 +41,7 @@ namespace LocalAiService
 		}
 
 		// For simple, non-streaming completions
-		private static string? ParseResponse(string responseText)
+		private static string? ParseResponse(string? responseText)
 		{
 			if (responseText == null)
 			{
