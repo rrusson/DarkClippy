@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClippyWeb", "ClippyWeb\Clip
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SemanticKernelHelper", "SemanticKernelHelper\SemanticKernelHelper.csproj", "{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalAiService", "AiService\LocalAiService.csproj", "{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedInterfaces", "SharedInterfaces\SharedInterfaces.csproj", "{6A805096-9F7B-48F7-9A31-2970B41E5121}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E6F2216-152D-42AE-B60E-29C810CDB4B1}"
@@ -34,10 +32,6 @@ Global
 		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F1268EE-04EB-41F6-90A8-62ACBBCD91C1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B2DFE62E-3FFC-49A7-9623-BC2F10C7E8C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A805096-9F7B-48F7-9A31-2970B41E5121}.Release|Any CPU.ActiveCfg = Release|Any CPU
