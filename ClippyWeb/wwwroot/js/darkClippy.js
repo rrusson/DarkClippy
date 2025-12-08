@@ -115,9 +115,9 @@ $(document).ready(function () {
             clippyAgent.play('Writing');
 
             let result = await getResponse(question);
-            const santizedResult = removeHtmlTags(result);
+            const sanitizedResult = removeHtmlTags(result);
 
-            clippyAgent.speak(santizedResult);
+            clippyAgent.speak(sanitizedResult);
             setTimeout(() => $('#question').val(''), 8000);
         } catch (error) {
             responseDiv.text('Error: ' + error);
@@ -166,7 +166,7 @@ $(document).ready(function () {
                 break;
             }
             case rnd < 0.1:
-                agent.animate();
+                clippyAgent.animate();
                 break;
             default:
                 lookAtMouse();

@@ -1,6 +1,6 @@
 # :paperclip:Welcome to the Clipocalypse
 This is a basic chatbot using the Ollama API, with the added bonus of Dark Clippy.
-It uses [MS SemanticKernal](https://github.com/microsoft/semantic-kernel) to access an LLM running locally on Ollama.
+It uses [MS SemanticKernel](https://github.com/microsoft/semantic-kernel) to access an LLM running locally on Ollama.
 It's a work in progress (at least until Clippy takes over the world).
 
 Clippy is courtesy of the <a href="https://github.com/clippyjs/clippy.js">Clippy.js repo</a> (code originally by <a href="http://smore.com/">Smore.com</a>,
