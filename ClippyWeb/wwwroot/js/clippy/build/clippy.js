@@ -403,7 +403,7 @@ clippy.Agent.prototype = {
         e.preventDefault();
         const x = e.clientX - this._offset.left;
         const y = e.clientY - this._offset.top;
-        this._taregtX = x;
+        this._targetX = x;
         this._targetY = y;
     },
 
