@@ -395,7 +395,7 @@ clippy.Agent.prototype = {
     },
 
     _updateLocation: function () {
-        this._el.css({top: this._targetY, left: this._taregtX});
+        this._el.css({top: this._targetY, left: this._targetX});
         this._dragUpdateLoop = globalThis.setTimeout($.proxy(this._updateLocation, this), 10);
     },
 

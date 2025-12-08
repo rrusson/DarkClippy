@@ -73,7 +73,7 @@ function getDirection(angle) {
 
     if (direction === 'Right' && angle > 10) {
         return 'UpRight';
-    }        
+    }
     if (direction === 'Right' && angle <= -10) {
         return 'DownRight';
     }
@@ -149,7 +149,6 @@ $(document).ready(function () {
         const angle = Math.round((180 * Math.atan2(a, b)) / Math.PI);
 
         const lookAnim = 'Look' + getDirection(angle);
-        console.log(angle + ':' + lookAnim);
         clippyAgent.play(lookAnim);
     }
 
@@ -159,18 +158,13 @@ $(document).ready(function () {
         }
 
         let rnd = Math.random();
-        switch (rnd) {
-            case rnd < 0.05: {
-                const rndQuip = getQuip();
-                clippyAgent.speak(rndQuip);
-                break;
-            }
-            case rnd < 0.1:
-                clippyAgent.animate();
-                break;
-            default:
-                lookAtMouse();
-                break;
+        if (rnd < 0.05) {
+            const rndQuip = getQuip();
+            clippyAgent.speak(rndQuip);
+        } else if (rnd < 0.1) {
+            clippyAgent.animate();
+        } else {
+            lookAtMouse();
         }
     }
 
