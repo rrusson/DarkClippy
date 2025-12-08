@@ -5,8 +5,6 @@ namespace ClippyWeb.Pages
 {
     public class PrivacyModel : PageModel
     {
-        public PrivacyModel(ILogger<AboutModel> logger)
-        {
-        }
+        public PrivacyModel() { }
     }
 }

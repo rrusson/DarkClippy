@@ -5,8 +5,6 @@ namespace ClippyWeb.Pages
 {
     public class IndexModel : PageModel
     {
-        public IndexModel(ILogger<IndexModel> logger)
-        {
-        }
+        public IndexModel() { }
     }
 }

@@ -50,7 +50,7 @@ jobs:
             /k:"rrusson_DarkClippy" \
             /o:"rrusson" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.login="$SONAR_TOKEN" \
+            /d:sonar.token="${{ SONAR_TOKEN }}" \
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
 
       - name: Restore
@@ -70,9 +70,7 @@ jobs:
       # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          export PATH="$PATH:/home/runner/.dotnet/tools"
-          dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+        run: dotnet sonarscanner end /d:sonar.token="${SONAR_TOKEN}"
 
       # Fail the job if the Quality Gate fails (supports SonarCloud via SONAR_HOST_URL)
       - name: SonarCloud Quality Gate

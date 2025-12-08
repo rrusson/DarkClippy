@@ -64,13 +64,11 @@ namespace ClippyWeb.Util
 				PingReply reply = ping.Send(host, 2000);
 				if (reply.Status == IPStatus.Success)
 				{
-					string messageTemplate = $"Successfully pinged {host}, round-trip time: {reply.RoundtripTime}ms";
-					Log.Information(messageTemplate);
+					Log.Information("Successfully pinged {host}, round-trip time: {roundTripTime}ms", host, reply.RoundtripTime);
 				}
 				else
 				{
-					string messageTemplate = $"Could not ping {host}: {reply.Status}";
-					Log.Warning(messageTemplate);
+					Log.Warning("Could not ping {host}: {status}", host, reply.Status);
 				}
 			}
 			catch (Exception ex)
