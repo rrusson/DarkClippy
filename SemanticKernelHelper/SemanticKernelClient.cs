@@ -1,10 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-
 using SharedInterfaces;
-
 using System.Text;
-#pragma warning disable SKEXP0010  // Everything is impermanent, isn't it?                                          
 
 namespace SemanticKernelHelper
 {

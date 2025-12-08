@@ -19,7 +19,7 @@ namespace ClippyWeb.Util
 			string host = uri.Host;
 			int port = uri.Port;
 
-			Log.Information($"Validating connection to {host}:{port}");
+			Log.Information("Validating connection to {host}:{port}", host, port);
 
 			if (host == "localhost" || host == "127.0.0.1")
 			{
@@ -45,13 +45,13 @@ namespace ClippyWeb.Util
 				}
 				else
 				{
-					Log.Error($"Cannot connect to {host}:{port}. Please ensure the service is running.");
+					Log.Error("Cannot connect to {host}:{port}. Please ensure the service is running.", host, port);
 					Log.Warning("You can update ServiceUrl in appsettings.json to point to a valid endpoint.");
 				}
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex, $"Failed to connect to {host}:{port}");
+				Log.Error(ex, "Failed to connect to {host}:{port}", host, port);
 				Log.Warning("Please ensure the service is installed and running, or update ServiceUrl in appsettings.json");
 			}
 		}
@@ -64,16 +64,16 @@ namespace ClippyWeb.Util
 				PingReply reply = ping.Send(host, 2000);
 				if (reply.Status == IPStatus.Success)
 				{
-					Log.Information($"Successfully pinged {host}, round-trip time: {reply.RoundtripTime}ms");
+					Log.Information("Successfully pinged {host}, round-trip time: {roundTripTime}ms", host, reply.RoundtripTime);
 				}
 				else
 				{
-					Log.Warning($"Could not ping {host}: {reply.Status}");
+					Log.Warning("Could not ping {host}: {status}", host, reply.Status);
 				}
 			}
 			catch (Exception ex)
 			{
-				Log.Error(ex, $"Error pinging {host}");
+				Log.Error(ex, "Error pinging {host}", host);
 			}
 		}
 	}
