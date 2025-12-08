@@ -155,7 +155,7 @@ clippy.Agent.prototype = {
             return;
         }
 
-        if (this._el.css('top') === 'auto' || this._el.css('left') !== 'auto') {
+        if (this._el.css('top') === 'auto' || this._el.css('left') === 'auto') {
             let left = $(globalThis).width() * 0.8;
             let top = ($(globalThis).height() + $(document).scrollTop()) * 0.8;
             this._el.css({top: top, left: left});
