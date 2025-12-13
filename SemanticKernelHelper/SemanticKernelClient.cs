@@ -11,8 +11,19 @@ namespace SemanticKernelHelper
 		private readonly string _model = model;
 		private readonly ChatHistory _chatHistory = [];
 
-		public async Task<string?> GetChatResponseAsync(string chatMessage)
+        /// <summary>
+        /// Generates a chat response from the AI assistant based on the provided user message, maintaining conversational context.
+        /// </summary>
+        /// <param name="chatMessage">The user's message to send to Dark Clippy. Cannot be null or empty.</param>
+        /// <returns>A string containing Dark Clippy's entire response to the user message</returns>
+        /// <remarks>The conversation history is preserved across calls to provide contextually relevant responses.</remarks>
+        public async Task<string?> GetChatResponseAsync(string chatMessage)
 		{
+			if (string.IsNullOrWhiteSpace(chatMessage) || chatMessage == "?")
+			{
+				return "You say something?";
+            }
+
 			// Create a kernel with OpenAI chat completion
 			Kernel kernel = Kernel.CreateBuilder()
 							.AddOpenAIChatCompletion(

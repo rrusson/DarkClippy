@@ -31,6 +31,9 @@ namespace ClippyWeb.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Post([FromBody] string question)
 		{
+            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+            Log.Information("Question from {ipAddress}: {question}", ipAddress, question);
+            
 			if (_cache.Get<bool>(RequestInProgressKey))
 			{
 				Log.Warning("[Request rejected due to existing request in progress]");
@@ -51,7 +54,9 @@ namespace ClippyWeb.Controllers
 				}
 
 				string htmlResponse = _markdownConverter.Transform(response);
-				return Ok(htmlResponse);
+                Log.Information("Response: {htmlResponse}", htmlResponse);
+
+                return Ok(htmlResponse);
 			}
 			catch (SocketException ex)
 			{

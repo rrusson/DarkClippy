@@ -1,11 +1,17 @@
-using Serilog;
-
 using System.Net.NetworkInformation;
+
+using Serilog;
 
 namespace ClippyWeb.Util
 {
 	public static class ConnectionValidator
 	{
+		/// <summary>
+		/// Validates the application's connection settings using configuration
+		/// </summary>
+		/// <param name="configuration">The configuration source containing connection settings. Must include a ServiceUrl entry to perform validation</param>
+		/// <remarks>If the ServiceUrl setting is missing or empty, the method logs a warning and does not attempt validation.
+		/// The method distinguishes between local and remote hosts based on the value of ServiceUrl.</remarks>
 		public static void ValidateConnection(IConfiguration configuration)
 		{
 			string? serviceUrl = configuration["ServiceUrl"];

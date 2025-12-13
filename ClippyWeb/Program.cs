@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Configuration;
-using SharedInterfaces;
-
 using Serilog;
 using Serilog.Events;
+
 using ClippyWeb.Util;
+using SharedInterfaces;
 
 namespace ClippyWeb
 {
@@ -31,26 +31,7 @@ namespace ClippyWeb
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 				});
 
-				ConnectionValidator.ValidateConnection(builder.Configuration);
-
-				builder.Services.AddSingleton<IChatClient>(provider =>
-				{
-					string? serviceUrl = builder.Configuration["ServiceUrl"];
-					if (string.IsNullOrEmpty(serviceUrl))
-					{
-						throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
-					}
-
-					string? model = builder.Configuration["Model"];
-					if (string.IsNullOrEmpty(model))
-					{
-						throw new InvalidOperationException("Please supply a config value for Model.");
-					}
-
-					Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
-
-					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
-				});
+				SetupLlmService(builder);
 
 				var app = builder.Build();
 
@@ -80,9 +61,38 @@ namespace ClippyWeb
 			}
 		}
 
+		private static void SetupLlmService(WebApplicationBuilder builder)
+		{
+			ConnectionValidator.ValidateConnection(builder.Configuration);
+
+			builder.Services.AddSingleton<IChatClient>(provider =>
+			{
+				string? serviceUrl = builder.Configuration["ServiceUrl"];
+				if (string.IsNullOrEmpty(serviceUrl))
+				{
+					throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
+				}
+
+				string? model = builder.Configuration["Model"];
+				if (string.IsNullOrEmpty(model))
+				{
+					throw new InvalidOperationException("Please supply a config value for Model.");
+				}
+
+				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
+
+				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+			});
+		}
+
 		private static void SetupLogging(ConfigurationManager configuration)
 		{
-			string logPath = configuration["LogPath"] ?? "C:\\temp\\clippyWeb\\";
+			string logPath = configuration["LogPath"] ?? throw new DirectoryNotFoundException("Logging directory missing from appsettings.");
+
+			if (!Directory.Exists(logPath))
+			{
+				Directory.CreateDirectory(logPath);
+			}
 
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Information()
