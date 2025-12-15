@@ -1,50 +1,50 @@
 ﻿@page
 @model ErrorModel
 @{
-    ViewData["Title"] = "Error";
+	ViewData["Title"] = "Error";
 }
 
 <div class="container mt-5">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <h2 class="mb-0">Error</h2>
-                </div>
-                <div class="card-body">
-                    <h3 class="text-danger">An error occurred while processing your request.</h3>
+	<div class="row">
+		<div class="col-md-8 offset-md-2">
+			<div class="card border-danger">
+				<div class="card-header bg-danger text-white">
+					<h2 class="mb-0">Error</h2>
+				</div>
+				<div class="card-body">
+					<h3 class="text-danger">An error occurred while processing your request.</h3>
 
-                    @if (Model.ShowRequestId)
-                    {
-                        <p>
-                            <strong>Request ID:</strong> <code>@Model.RequestId</code>
-                        </p>
-                    }
+					@if (Model.ShowRequestId)
+					{
+						<p>
+							<strong>Request ID:</strong> <code>@Model.RequestId</code>
+						</p>
+					}
 
-                    <div class="alert alert-warning mt-4">
-                        <h4 class="alert-heading">Common Issue: LLM Service Connection</h4>
-                        <p>
-                            If you're seeing this error, it's possible that Dark Clippy can't connect to the AI language model service.
-                            Here are some things to check:
-                        </p>
-                        <ul>
-                            <li>Is Ollama installed and running on the server?</li>
-                            <li>Is the service URL correct in <code>appsettings.json</code>? (Currently: <code>@(ViewData["ServiceUrl"] ?? "Not available")</code>)</li>
-                            <li>Is the selected model installed? (Currently: <code>@(ViewData["ModelName"] ?? "Not available")</code>)</li>
-                            <li>Check the server logs for more detailed error information.</li>
-                        </ul>
-                        <hr>
-                        <p class="mb-0">
-                            <a href="https://ollama.com/" target="_blank" class="btn btn-outline-info btn-sm">Get Ollama</a>
-                            <a href="/" class="btn btn-outline-primary btn-sm ml-2">Try Again</a>
-                        </p>
-                    </div>
+					<div class="alert alert-warning mt-4">
+						<h4 class="alert-heading">Common Issue: LLM Service Connection</h4>
+						<p>
+							If you're seeing this error, it's possible that Dark Clippy can't connect to the AI language model service.
+							Here are some things to check:
+						</p>
+						<ul>
+							<li>Is Ollama installed and running on the server?</li>
+							<li>Is the service URL correct in <code>appsettings.json</code>? (Currently: <code>@(ViewData["ServiceUrl"] ?? "Not available")</code>)</li>
+							<li>Is the selected model installed? (Currently: <code>@(ViewData["ModelName"] ?? "Not available")</code>)</li>
+							<li>Check the server logs for more detailed error information.</li>
+						</ul>
+						<hr>
+						<p class="mb-0">
+							<a href="https://ollama.com/" target="_blank" class="btn btn-outline-info btn-sm">Get Ollama</a>
+							<a href="/" class="btn btn-outline-primary btn-sm ml-2">Try Again</a>
+						</p>
+					</div>
 
-                    <div class="mt-4">
-                        <a href="/" class="btn btn-primary">Return to Home</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+					<div class="mt-4">
+						<a href="/" class="btn btn-primary">Return to Home</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

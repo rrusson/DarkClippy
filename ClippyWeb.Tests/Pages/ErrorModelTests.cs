@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+
 using System.Diagnostics;
 
 using ClippyWeb.Pages;
@@ -40,6 +41,7 @@ namespace ClippyWeb.Tests.Pages
 			Assert.AreEqual(activity.Id, _sut.RequestId);
 
 			activity.Stop();
+			activity.Dispose();
 		}
 
 		[TestMethod]

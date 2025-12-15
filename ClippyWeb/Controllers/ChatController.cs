@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using SharedInterfaces;
 
 using System.Net.Sockets;
+
 using Serilog;
 
 namespace ClippyWeb.Controllers
@@ -31,9 +32,9 @@ namespace ClippyWeb.Controllers
 		[HttpPost]
 		public async Task<IActionResult> Post([FromBody] string question)
 		{
-            string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
-            Log.Information("Question from {ipAddress}: {question}", ipAddress, question);
-            
+			string ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown IP";
+			Log.Information("Question from {IpAddress}: {Question}", ipAddress, question);
+
 			if (_cache.Get<bool>(RequestInProgressKey))
 			{
 				Log.Warning("[Request rejected due to existing request in progress]");
@@ -46,7 +47,7 @@ namespace ClippyWeb.Controllers
 			try
 			{
 				var response = await _chatClient.GetChatResponseAsync(question);
-				
+
 				if (response == null)
 				{
 					Log.Error("Chat client returned null response");
@@ -54,9 +55,9 @@ namespace ClippyWeb.Controllers
 				}
 
 				string htmlResponse = _markdownConverter.Transform(response);
-                Log.Information("Response: {htmlResponse}", htmlResponse);
+				Log.Information("Response: {HtmlResponse}", htmlResponse);
 
-                return Ok(htmlResponse);
+				return Ok(htmlResponse);
 			}
 			catch (SocketException ex)
 			{
@@ -73,12 +74,12 @@ namespace ClippyWeb.Controllers
 			catch (Exception ex)
 			{
 				Log.Error(ex, "Error processing chat request for question: {Question}", question);
-				
+
 				// Provide more specific error message based on exception type
-				string errorMessage = ex.Message.Contains("actively refused") || ex.Message.Contains("No connection") 
+				string errorMessage = ex.Message.Contains("actively refused") || ex.Message.Contains("No connection")
 					? "Cannot connect to the AI service. Please ensure Ollama is running on the server."
 					: "An error occurred while processing your request.";
-					
+
 				return StatusCode(StatusCodes.Status500InternalServerError, errorMessage);
 			}
 			finally

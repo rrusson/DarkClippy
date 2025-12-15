@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ClippyWeb.Pages
 {
-    public class IndexModel : PageModel
-    {
-        public IndexModel() { }
-    }
+	public class IndexModel : PageModel
+	{
+		public IndexModel() { }
+	}
 }

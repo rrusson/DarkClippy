@@ -1,5 +1,7 @@
 ﻿using System.Configuration;
 
+using SharedInterfaces;
+
 namespace TestConsole
 {
 	internal static class Program
@@ -22,7 +24,7 @@ namespace TestConsole
 				throw new ConfigurationErrorsException("Please supply a config value for Model.");
 			}
 
-			var semanticClient = new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+   IChatClient semanticClient = new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
 			string? responseX = Task.Run(async () => await semanticClient.GetChatResponseAsync(question)).GetAwaiter().GetResult();
 			Console.WriteLine("Semantic Kernel sez:" + responseX + Environment.NewLine);
 		}

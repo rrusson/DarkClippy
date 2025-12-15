@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
+
 using Serilog;
 using Serilog.Events;
 
 using ClippyWeb.Util;
+
 using SharedInterfaces;
 
 namespace ClippyWeb
@@ -61,6 +63,13 @@ namespace ClippyWeb
 			}
 		}
 
+		/// <summary>
+		/// Configures and registers the LLM chat service client with the application's dependency injection container.
+		/// </summary>
+		/// <param name="builder">The WebApplicationBuilder used to configure services and access application configuration settings.</param>
+		/// <exception cref="InvalidOperationException">Thrown if the required configuration values for 'ServiceUrl' or 'Model' are missing or empty.</exception>
+		/// <remarks>This method must be called during application startup to ensure that the IChatClient service is available for dependency injection.
+		/// The method expects the application's configuration to provide valid values for ServiceUrl and Model.</remarks>
 		private static void SetupLlmService(WebApplicationBuilder builder)
 		{
 			ConnectionValidator.ValidateConnection(builder.Configuration);
@@ -85,9 +94,16 @@ namespace ClippyWeb
 			});
 		}
 
+		/// <summary>
+		/// Configures the logging system using configuration settings
+		/// </summary>
+		/// <param name="configuration">The configuration manager containing application settings, including the logging directory path.</param>
+		/// <exception cref="System.Configuration.ConfigurationErrorsException">Thrown if the logging directory path setting is missing from the configuration.</exception>
+		/// <remarks>This method sets up Serilog to log to both the console and a rolling file in the specified directory.
+		/// The log file is rotated daily and limited in size and retention. Logging levels for Microsoft and ASP.NET Core components are set to warning or higher.</remarks>
 		private static void SetupLogging(ConfigurationManager configuration)
 		{
-			string logPath = configuration["LogPath"] ?? throw new DirectoryNotFoundException("Logging directory missing from appsettings.");
+			string logPath = configuration["LogPath"] ?? throw new System.Configuration.ConfigurationErrorsException("Logging directory path setting missing from appsettings.");
 
 			if (!Directory.Exists(logPath))
 			{

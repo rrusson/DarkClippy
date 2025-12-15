@@ -31,6 +31,8 @@ namespace ClippyWeb.Tests.Util
 
 			// Assert
 			_mockConfiguration.Verify(x => x["ServiceUrl"], Times.Once);
+			_mockConfiguration.VerifyNoOtherCalls();
+
 		}
 
 		[DataTestMethod]
