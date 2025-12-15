@@ -11,7 +11,7 @@ using SharedInterfaces;
 namespace ClippyWeb.Tests.Controllers
 {
 	/// <summary>
-	/// Tests for <see cref="ChatController"/>
+	/// Tests for the Post method in <see cref="ChatController"/> (the only method)
 	/// </summary>
 	[TestClass]
 	public class ChatControllerTests
@@ -72,6 +72,9 @@ namespace ClippyWeb.Tests.Controllers
 			var objectResult = result as ObjectResult;
 			Assert.IsNotNull(objectResult);
 			Assert.AreEqual(StatusCodes.Status429TooManyRequests, objectResult.StatusCode);
+			var payload = objectResult.Value;
+			Assert.IsNotNull(payload);
+			Assert.IsTrue(payload.ToString()!.Contains("I'm kind of busy chatting with someone else. Try again later."));
 		}
 
 		[TestMethod]
@@ -147,6 +150,9 @@ namespace ClippyWeb.Tests.Controllers
 			var objectResult = result as ObjectResult;
 			Assert.IsNotNull(objectResult);
 			Assert.AreEqual(StatusCodes.Status500InternalServerError, objectResult.StatusCode);
+			var payload = objectResult.Value;
+			Assert.IsNotNull(payload);
+			Assert.IsTrue(payload.ToString()!.Contains("An error occurred while processing your request"));
 		}
 
 		[TestMethod]
@@ -319,6 +325,24 @@ namespace ClippyWeb.Tests.Controllers
 
 			// Assert
 			_mockChatClient.Verify(x => x.GetChatResponseAsync(question), Times.Once);
+		}
+
+		[TestMethod]
+		public async Task IfQuestionIsEmptyGet()
+		{
+			// Arrange
+			const string question = "";
+			const string expectedResponse = "You say something?";
+			_mockChatClient.Setup(x => x.GetChatResponseAsync(question)).ReturnsAsync(expectedResponse);
+
+			// Act
+			var result = await _sut.Post(question);
+
+			// Assert
+			_mockChatClient.Verify(x => x.GetChatResponseAsync(question), Times.Once);
+			var payload = (result as OkObjectResult)?.Value;
+			Assert.IsNotNull(payload);
+			Assert.IsTrue(payload.ToString()!.Contains(expectedResponse));
 		}
 
 

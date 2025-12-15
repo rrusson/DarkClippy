@@ -21,7 +21,7 @@ namespace SemanticKernelHelper
 		/// <remarks>The conversation history is preserved across calls to provide contextually relevant responses.</remarks>
 		public async Task<string?> GetChatResponseAsync(string chatMessage)
 		{
-			if (string.IsNullOrWhiteSpace(chatMessage) || chatMessage == "?")
+			if (string.IsNullOrWhiteSpace(chatMessage))
 			{
 				return "You say something?";
 			}
