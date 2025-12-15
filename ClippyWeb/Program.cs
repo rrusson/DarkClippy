@@ -107,9 +107,29 @@ namespace ClippyWeb
 
 			if (!Directory.Exists(logPath))
 			{
-				Directory.CreateDirectory(logPath);
+				try
+				{
+					Directory.CreateDirectory(logPath);
+				}
+				catch (Exception ex)
+				{
+					throw new InvalidOperationException($"Failed to create log directory at '{logPath}'. See inner exception for details.", ex);
+				}
 			}
 
+			// Validate that the directory is writable
+			try
+			{
+				string testFilePath = Path.Combine(logPath, Path.GetRandomFileName());
+				using (FileStream fs = File.Create(testFilePath, 1, FileOptions.DeleteOnClose))
+				{
+					// Successfully created and will delete on close
+				}
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"The log directory '{logPath}' is not writable. Please check permissions. See inner exception for details.", ex);
+			}
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Information()
 				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
