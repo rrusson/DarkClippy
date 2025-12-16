@@ -1,9 +1,11 @@
+using System.Net.NetworkInformation;
+
+using ClippyWeb.Util;
+
 using Microsoft.Extensions.Configuration;
 
 using Serilog;
 using Serilog.Events;
-
-using ClippyWeb.Util;
 
 using SharedInterfaces;
 
@@ -11,7 +13,7 @@ namespace ClippyWeb
 {
 	public static class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -33,7 +35,7 @@ namespace ClippyWeb
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 				});
 
-				SetupLlmService(builder);
+				await SetupLlmService(builder);
 
 				var app = builder.Build();
 
@@ -51,7 +53,7 @@ namespace ClippyWeb
 				app.MapRazorPages();
 
 				Log.Information("DarkClippy: Application starting up");
-				app.Run();
+				await app.RunAsync();
 			}
 			catch (Exception ex)
 			{
@@ -59,7 +61,7 @@ namespace ClippyWeb
 			}
 			finally
 			{
-				Log.CloseAndFlush();
+				await Log.CloseAndFlushAsync();
 			}
 		}
 
@@ -70,9 +72,15 @@ namespace ClippyWeb
 		/// <exception cref="InvalidOperationException">Thrown if the required configuration values for 'ServiceUrl' or 'Model' are missing or empty.</exception>
 		/// <remarks>This method must be called during application startup to ensure that the IChatClient service is available for dependency injection.
 		/// The method expects the application's configuration to provide valid values for ServiceUrl and Model.</remarks>
-		private static void SetupLlmService(WebApplicationBuilder builder)
+		private static async Task SetupLlmService(WebApplicationBuilder builder)
 		{
-			ConnectionValidator.ValidateConnection(builder.Configuration);
+			builder.Services.AddSingleton<IPingService, PingService>();
+			builder.Services.AddSingleton<ITcpClientFactory, TcpClientFactory>();
+			builder.Services.AddSingleton<IConnectionValidator, ConnectionValidator>();
+
+			using var scope = builder.Services.BuildServiceProvider().CreateScope();
+			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
+			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
 
 			builder.Services.AddSingleton<IChatClient>(provider =>
 			{

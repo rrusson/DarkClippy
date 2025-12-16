@@ -30,7 +30,7 @@ namespace ClippyWeb.Tests.Pages
 		public void IfActivityCurrentIdExistsThenRequestIdIsSetToActivityId()
 		{
 			// Arrange
-			var activity = new Activity("TestActivity");
+			using var activity = new Activity("TestActivity");
 			activity.Start();
 
 			// Act
@@ -41,7 +41,6 @@ namespace ClippyWeb.Tests.Pages
 			Assert.AreEqual(activity.Id, _sut.RequestId);
 
 			activity.Stop();
-			activity.Dispose();
 		}
 
 		[TestMethod]

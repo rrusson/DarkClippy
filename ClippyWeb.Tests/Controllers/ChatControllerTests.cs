@@ -273,7 +273,7 @@ namespace ClippyWeb.Tests.Controllers
 			var firstRequestTask = _sut.Post(question);
 
 			// Give first request time to acquire lock
-			await Task.Delay(10);
+			await Task.Delay(50);
 
 			// Start second request
 			var secondResult = await _sut.Post(question);
