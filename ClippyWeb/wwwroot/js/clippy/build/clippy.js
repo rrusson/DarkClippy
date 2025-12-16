@@ -814,8 +814,8 @@ clippy.Balloon.prototype = {
 
     // Find the path based on the script tag
     const scripts = document.getElementsByTagName('script');
-    for (let i = 0; i < scripts.length; i++) {
-        const src = scripts[i].src;
+    for (const element of scripts) {
+        const src = element.src;
         if (src.indexOf('clippy.js') !== -1) {
             const path = src.substring(0, src.indexOf('js/clippy/build'));
             basePath = path + 'js/clippy/agents/';
