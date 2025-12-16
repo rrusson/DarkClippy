@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura,opencover</Format>
+          <Exclude>[*.Tests]*,[*]*.g.cs,[*]*.Designer.cs</Exclude>
+          <ExcludeByAttribute>ExcludeFromCodeCoverage,GeneratedCode,CompilerGenerated,DebuggerNonUserCode</ExcludeByAttribute>
+          <ExcludeByFile>
+            **/*.g.cs,**/*.g.i.cs,**/*.designer.cs,**/*.Designer.cs,**/Migrations/**,**/obj/**,**/bin/**,**/wwwroot/**,**/*.AssemblyInfo.cs,**/*.AssemblyAttributes.cs,**/TemporaryGeneratedFile_*.cs
+          </ExcludeByFile>
+          <IncludeDirectory>../ClippyWeb/,../SemanticKernelHelper/,../SharedInterfaces/</IncludeDirectory>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

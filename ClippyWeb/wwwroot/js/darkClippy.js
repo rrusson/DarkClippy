@@ -9,7 +9,11 @@ $(document).mousemove(function (event) {
 });
 
 async function getResponse(input) {
-    let question = input.replace('.', '?');
+    if (!input || input.trim() === '') {
+        return 'You say something?';
+    }
+
+    let question = input.endsWith('.') ? input.slice(0, -1) + '?' : input;
 
     if (!question.endsWith('?')) {
         question += '?';

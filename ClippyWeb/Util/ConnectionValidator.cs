@@ -1,45 +1,59 @@
-using Serilog;
+using System.Net.Sockets;
 
-using System.Net.NetworkInformation;
+using Microsoft.Extensions.Configuration;
+
+using Serilog;
+using SharedInterfaces; // Add this using directive to resolve ITcpClient and ITcpClientFactory
 
 namespace ClippyWeb.Util
 {
-	public static class ConnectionValidator
+	/// <inheritdoc/>
+	public class ConnectionValidator : SharedInterfaces.IConnectionValidator
 	{
-		public static void ValidateConnection(IConfiguration configuration)
+		private readonly IPingService _pingService;
+		private readonly ITcpClientFactory _tcpClientFactory;
+
+		public ConnectionValidator(IPingService pingService, ITcpClientFactory tcpClientFactory)
 		{
-			string? serviceUrl = configuration["ServiceUrl"];
+			_pingService = pingService;
+			_tcpClientFactory = tcpClientFactory;
+		}
+
+		/// <inheritdoc/>
+		public async Task ValidateConnectionAsync(IConfiguration configuration)
+		{
+			var serviceUrl = configuration["ServiceUrl"];
 			if (string.IsNullOrEmpty(serviceUrl))
 			{
 				Log.Warning("ServiceUrl not configured in appsettings.json");
 				return;
 			}
 
-			Uri uri = new Uri(serviceUrl);
-			string host = uri.Host;
-			int port = uri.Port;
+			var uri = new Uri(serviceUrl);
+			var host = uri.Host;
+			var port = uri.Port;
 
 			Log.Information("Validating connection to {host}:{port}", host, port);
 
 			if (host == "localhost" || host == "127.0.0.1")
 			{
-				TryLocalConnection(host, port);
+				await TryLocalConnectionAsync(host, port).ConfigureAwait(false);
 			}
 			else
 			{
-				TryRemoteConnection(host);
+				await TryRemoteConnectionAsync(host).ConfigureAwait(false);
 			}
 		}
 
-		private static void TryLocalConnection(string host, int port)
+		private async Task TryLocalConnectionAsync(string host, int port)
 		{
 			try
 			{
-				using var client = new System.Net.Sockets.TcpClient();
-				var connectTask = client.ConnectAsync(host, port);
-				var completedTask = Task.WhenAny(connectTask, Task.Delay(2000)).Result;
+				using SharedInterfaces.ITcpClient client = _tcpClientFactory.Create();
+				CancellationToken cancellationToken = new CancellationTokenSource(2000).Token;
+				await client.ConnectAsync(host, port, cancellationToken).ConfigureAwait(false);
 
-				if (completedTask == connectTask && client.Connected)
+				if (client.Connected)
 				{
 					Log.Information("Successfully connected to instance");
 				}
@@ -56,19 +70,18 @@ namespace ClippyWeb.Util
 			}
 		}
 
-		private static void TryRemoteConnection(string host)
+		private async Task TryRemoteConnectionAsync(string host)
 		{
-			Ping ping = new Ping();
 			try
 			{
-				PingReply reply = ping.Send(host, 2000);
-				if (reply.Status == IPStatus.Success)
+				var success = await _pingService.PingAsync(host, 2000).ConfigureAwait(false);
+				if (success)
 				{
-					Log.Information("Successfully pinged {host}, round-trip time: {roundTripTime}ms", host, reply.RoundtripTime);
+					Log.Information("Successfully pinged {host}", host);
 				}
 				else
 				{
-					Log.Warning("Could not ping {host}: {status}", host, reply.Status);
+					Log.Warning("Could not ping {host}", host);
 				}
 			}
 			catch (Exception ex)

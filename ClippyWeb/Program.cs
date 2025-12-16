@@ -1,15 +1,19 @@
+using System.Net.NetworkInformation;
+
+using ClippyWeb.Util;
+
 using Microsoft.Extensions.Configuration;
-using SharedInterfaces;
 
 using Serilog;
 using Serilog.Events;
-using ClippyWeb.Util;
+
+using SharedInterfaces;
 
 namespace ClippyWeb
 {
 	public static class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
 			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
@@ -31,26 +35,7 @@ namespace ClippyWeb
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 				});
 
-				ConnectionValidator.ValidateConnection(builder.Configuration);
-
-				builder.Services.AddSingleton<IChatClient>(provider =>
-				{
-					string? serviceUrl = builder.Configuration["ServiceUrl"];
-					if (string.IsNullOrEmpty(serviceUrl))
-					{
-						throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
-					}
-
-					string? model = builder.Configuration["Model"];
-					if (string.IsNullOrEmpty(model))
-					{
-						throw new InvalidOperationException("Please supply a config value for Model.");
-					}
-
-					Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
-
-					return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
-				});
+				await SetupLlmService(builder);
 
 				var app = builder.Build();
 
@@ -68,7 +53,7 @@ namespace ClippyWeb
 				app.MapRazorPages();
 
 				Log.Information("DarkClippy: Application starting up");
-				app.Run();
+				await app.RunAsync();
 			}
 			catch (Exception ex)
 			{
@@ -76,14 +61,83 @@ namespace ClippyWeb
 			}
 			finally
 			{
-				Log.CloseAndFlush();
+				await Log.CloseAndFlushAsync();
 			}
 		}
 
+		/// <summary>
+		/// Configures and registers the LLM chat service client with the application's dependency injection container.
+		/// </summary>
+		/// <param name="builder">The WebApplicationBuilder used to configure services and access application configuration settings.</param>
+		/// <exception cref="InvalidOperationException">Thrown if the required configuration values for 'ServiceUrl' or 'Model' are missing or empty.</exception>
+		/// <remarks>This method must be called during application startup to ensure that the IChatClient service is available for dependency injection.
+		/// The method expects the application's configuration to provide valid values for ServiceUrl and Model.</remarks>
+		private static async Task SetupLlmService(WebApplicationBuilder builder)
+		{
+			builder.Services.AddSingleton<IPingService, PingService>();
+			builder.Services.AddSingleton<ITcpClientFactory, TcpClientFactory>();
+			builder.Services.AddSingleton<IConnectionValidator, ConnectionValidator>();
+
+			using var scope = builder.Services.BuildServiceProvider().CreateScope();
+			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
+			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
+
+			builder.Services.AddSingleton<IChatClient>(provider =>
+			{
+				string? serviceUrl = builder.Configuration["ServiceUrl"];
+				if (string.IsNullOrEmpty(serviceUrl))
+				{
+					throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
+				}
+
+				string? model = builder.Configuration["Model"];
+				if (string.IsNullOrEmpty(model))
+				{
+					throw new InvalidOperationException("Please supply a config value for Model.");
+				}
+
+				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
+
+				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+			});
+		}
+
+		/// <summary>
+		/// Configures the logging system using configuration settings
+		/// </summary>
+		/// <param name="configuration">The configuration manager containing application settings, including the logging directory path.</param>
+		/// <exception cref="System.Configuration.ConfigurationErrorsException">Thrown if the logging directory path setting is missing from the configuration.</exception>
+		/// <remarks>This method sets up Serilog to log to both the console and a rolling file in the specified directory.
+		/// The log file is rotated daily and limited in size and retention. Logging levels for Microsoft and ASP.NET Core components are set to warning or higher.</remarks>
 		private static void SetupLogging(ConfigurationManager configuration)
 		{
-			string logPath = configuration["LogPath"] ?? "C:\\temp\\clippyWeb\\";
+			string logPath = configuration["LogPath"] ?? throw new System.Configuration.ConfigurationErrorsException("Logging directory path setting missing from appsettings.");
 
+			if (!Directory.Exists(logPath))
+			{
+				try
+				{
+					Directory.CreateDirectory(logPath);
+				}
+				catch (Exception ex)
+				{
+					throw new InvalidOperationException($"Failed to create log directory at '{logPath}'. See inner exception for details.", ex);
+				}
+			}
+
+			// Validate that the directory is writable
+			try
+			{
+				string testFilePath = Path.Combine(logPath, Path.GetRandomFileName());
+				using (FileStream fs = File.Create(testFilePath, 1, FileOptions.DeleteOnClose))
+				{
+					// Successfully created and will delete on close
+				}
+			}
+			catch (Exception ex)
+			{
+				throw new InvalidOperationException($"The log directory '{logPath}' is not writable. Please check permissions. See inner exception for details.", ex);
+			}
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Information()
 				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
