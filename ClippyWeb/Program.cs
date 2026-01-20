@@ -96,9 +96,11 @@ namespace ClippyWeb
 					throw new InvalidOperationException("Please supply a config value for Model.");
 				}
 
+				string? apiKey = builder.Configuration["ApiKey"];
+
 				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
-				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model, apiKey);
 			});
 		}
 

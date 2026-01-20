@@ -7,11 +7,36 @@ using System.Text;
 
 namespace SemanticKernelHelper
 {
-	public class SemanticKernelClient(string apiUrl, string model) : IChatClient
+	public class SemanticKernelClient : IChatClient
 	{
-		private readonly string _apiUrl = apiUrl;
-		private readonly string _model = model;
+		private readonly string _apiUrl;
+		private readonly string _model;
+		private readonly string _apiKey;
 		private readonly ChatHistory _chatHistory = [];
+		private readonly Kernel _kernel;
+		private readonly IChatCompletionService _aiChatService;
+		private int _exchangeCount;
+		private const int MaxExchangesBeforeFatigue = 10;
+
+		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
+		{
+			_apiUrl = apiUrl;
+			_model = model;
+			_apiKey = apiKey ?? string.Empty;
+			_exchangeCount = 0;
+
+			_kernel = Kernel.CreateBuilder()
+				.AddOpenAIChatCompletion(
+					modelId: _model,
+					endpoint: new Uri(_apiUrl),
+					apiKey: _apiKey)
+				.Build();
+
+			_aiChatService = _kernel.GetRequiredService<IChatCompletionService>();
+
+			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, short answers to questions. And you swear a lot.";
+			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, systemPrompt));
+		}
 
 		/// <summary>
 		/// Generates a chat response from the AI assistant based on the provided user message, maintaining conversational context.
@@ -26,25 +51,18 @@ namespace SemanticKernelHelper
 				return "You say something?";
 			}
 
-			// Create a kernel with OpenAI chat completion
-			Kernel kernel = Kernel.CreateBuilder()
-							.AddOpenAIChatCompletion(
-								modelId: _model,
-								endpoint: new Uri(_apiUrl),
-								apiKey: "")
-							.Build();
+			_exchangeCount++;
 
-			IChatCompletionService aiChatService = kernel.GetRequiredService<IChatCompletionService>();
+			if (_exchangeCount > MaxExchangesBeforeFatigue)
+			{
+				return "Alright, I'm sick of talking about this shit. Go bother someone else.";
+			}
 
-			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, short answers to questions. And you swear a lot.";
-			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, systemPrompt));
-
-			// Consider persisting the chat history for more coherent conversations
 			_chatHistory.Add(new ChatMessageContent(AuthorRole.User, chatMessage));
 
 			var responseBuilder = new StringBuilder();
 
-			await foreach (StreamingChatMessageContent item in aiChatService.GetStreamingChatMessageContentsAsync(_chatHistory))
+			await foreach (StreamingChatMessageContent item in _aiChatService.GetStreamingChatMessageContentsAsync(_chatHistory))
 			{
 				responseBuilder.Append(item.Content);
 			}
