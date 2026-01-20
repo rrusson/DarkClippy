@@ -18,6 +18,14 @@ namespace SemanticKernelHelper
 		private int _exchangeCount;
 		private const int MaxExchangesBeforeFatigue = 10;
 
+		/// <summary>
+		/// Initializes a new instance of the SemanticKernelClient with the specified configuration.
+		/// </summary>
+		/// <param name="apiUrl">The base URL of the OpenAI-compatible API endpoint. Must be a valid URL.</param>
+		/// <param name="model">The identifier of the model to use for chat completion.</param>
+		/// <param name="apiKey">Optional API key for authentication. Defaults to empty string for local services like Ollama.</param>
+		/// <exception cref="ArgumentNullException">Thrown when apiUrl or model is null.</exception>
+		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
 		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
 		{
 			_apiUrl = apiUrl;
