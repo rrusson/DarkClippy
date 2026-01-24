@@ -25,12 +25,28 @@ namespace SemanticKernelHelper
 		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
 		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
 		{
+			if (apiUrl is null)
+			{
+				throw new ArgumentNullException(nameof(apiUrl));
+			}
+
+			if (model is null)
+			{
+				throw new ArgumentNullException(nameof(model));
+			}
+
+			if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out var apiUri) ||
+				(apiUri.Scheme != Uri.UriSchemeHttp && apiUri.Scheme != Uri.UriSchemeHttps))
+			{
+				throw new UriFormatException($"The value of {nameof(apiUrl)} is not a valid HTTP or HTTPS URL.");
+			}
+
 			_exchangeCount = 0;
 
 			_kernel = Kernel.CreateBuilder()
 				.AddOpenAIChatCompletion(
 					modelId: model,
-					endpoint: new Uri(apiUrl),
+					endpoint: apiUri,
 					apiKey: apiKey ?? string.Empty)
 				.Build();
 
