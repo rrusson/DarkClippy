@@ -9,9 +9,6 @@ namespace SemanticKernelHelper
 {
 	public class SemanticKernelClient : IChatClient
 	{
-		private readonly string _apiUrl;
-		private readonly string _model;
-		private readonly string _apiKey;
 		private readonly ChatHistory _chatHistory = [];
 		private readonly Kernel _kernel;
 		private readonly IChatCompletionService _aiChatService;
@@ -28,16 +25,13 @@ namespace SemanticKernelHelper
 		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
 		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
 		{
-			_apiUrl = apiUrl;
-			_model = model;
-			_apiKey = apiKey ?? string.Empty;
 			_exchangeCount = 0;
 
 			_kernel = Kernel.CreateBuilder()
 				.AddOpenAIChatCompletion(
-					modelId: _model,
-					endpoint: new Uri(_apiUrl),
-					apiKey: _apiKey)
+					modelId: model,
+					endpoint: new Uri(apiUrl),
+					apiKey: apiKey ?? string.Empty)
 				.Build();
 
 			_aiChatService = _kernel.GetRequiredService<IChatCompletionService>();
