@@ -1,14 +1,14 @@
-using System.Net.NetworkInformation;
+using System.Diagnostics.CodeAnalysis;
 
 using ClippyWeb.Util;
 
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
 
 using Serilog;
 using Serilog.Events;
 
 using SharedInterfaces;
+
 
 namespace ClippyWeb
 {
@@ -113,6 +113,7 @@ namespace ClippyWeb
 		/// <exception cref="System.Configuration.ConfigurationErrorsException">Thrown if the logging directory path setting is missing from the configuration.</exception>
 		/// <remarks>This method sets up Serilog to log to both the console and a rolling file in the specified directory.
 		/// The log file is rotated daily and limited in size and retention. Logging levels for Microsoft and ASP.NET Core components are set to warning or higher.</remarks>
+		[ExcludeFromCodeCoverage]
 		private static void SetupLogging(ConfigurationManager configuration)
 		{
 			string logPath = configuration["LogPath"] ?? throw new System.Configuration.ConfigurationErrorsException("Logging directory path setting missing from appsettings.");

@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace ClippyWeb.Pages
 {
 	public class PrivacyModel : PageModel
 	{
-		public PrivacyModel() { }
 	}
 }

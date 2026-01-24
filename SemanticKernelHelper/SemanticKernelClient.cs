@@ -1,16 +1,15 @@
-﻿using Microsoft.SemanticKernel;
+﻿using System.Text;
+
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 using SharedInterfaces;
-
-using System.Text;
 
 namespace SemanticKernelHelper
 {
 	public class SemanticKernelClient : IChatClient
 	{
 		private readonly ChatHistory _chatHistory = [];
-		private readonly Kernel _kernel;
 		private readonly IChatCompletionService _aiChatService;
 		private int _exchangeCount;
 		private readonly object _lock = new();
@@ -26,15 +25,8 @@ namespace SemanticKernelHelper
 		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
 		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
 		{
-			if (apiUrl is null)
-			{
-				throw new ArgumentNullException(nameof(apiUrl));
-			}
-
-			if (model is null)
-			{
-				throw new ArgumentNullException(nameof(model));
-			}
+			ArgumentNullException.ThrowIfNull(apiUrl);
+			ArgumentNullException.ThrowIfNull(model);
 
 			if (!Uri.TryCreate(apiUrl, UriKind.Absolute, out var apiUri) ||
 				(apiUri.Scheme != Uri.UriSchemeHttp && apiUri.Scheme != Uri.UriSchemeHttps))
@@ -44,14 +36,14 @@ namespace SemanticKernelHelper
 
 			_exchangeCount = 0;
 
-			_kernel = Kernel.CreateBuilder()
+			Kernel kernel = Kernel.CreateBuilder()
 				.AddOpenAIChatCompletion(
 					modelId: model,
 					endpoint: apiUri,
 					apiKey: apiKey ?? string.Empty)
 				.Build();
 
-			_aiChatService = _kernel.GetRequiredService<IChatCompletionService>();
+			_aiChatService = kernel.GetRequiredService<IChatCompletionService>();
 
 			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, short answers to questions. And you swear a lot.";
 			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, systemPrompt));

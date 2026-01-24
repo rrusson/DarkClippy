@@ -1,6 +1,3 @@
-using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-
 using SemanticKernelHelper;
 
 namespace ClippyWeb.Tests

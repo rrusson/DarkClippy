@@ -1,13 +1,13 @@
+using System.Net.Sockets;
+
 using MarkdownSharp;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
-using SharedInterfaces;
-
-using System.Net.Sockets;
-
 using Serilog;
+
+using SharedInterfaces;
 
 namespace ClippyWeb.Controllers
 {
