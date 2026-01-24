@@ -26,18 +26,20 @@ namespace SemanticKernelHelper
 
 			lock (_lock)
 			{
-				if (!_cache.TryGetValue(cacheKey, out IChatClient? client))
+				if (_cache.TryGetValue<IChatClient>(cacheKey, out var client))
 				{
-					client = new SemanticKernelClient(_serviceUrl, _model, _apiKey);
-					var cacheOptions = new MemoryCacheEntryOptions
-					{
-						SlidingExpiration = TimeSpan.FromMinutes(30),
-						Priority = CacheItemPriority.Normal
-					};
-					_cache.Set(cacheKey, client, cacheOptions);
+					// TryGetValue returns true only when client is not null
+					return client!;
 				}
 
-				return client!;
+				var newClient = new SemanticKernelClient(_serviceUrl, _model, _apiKey);
+				var cacheOptions = new MemoryCacheEntryOptions
+				{
+					SlidingExpiration = TimeSpan.FromMinutes(30),
+					Priority = CacheItemPriority.Normal
+				};
+				_cache.Set(cacheKey, newClient, cacheOptions);
+				return newClient;
 			}
 		}
 	}
