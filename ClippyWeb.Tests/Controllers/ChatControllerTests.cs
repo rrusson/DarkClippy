@@ -17,6 +17,7 @@ namespace ClippyWeb.Tests.Controllers
 	public class ChatControllerTests
 	{
 		private Mock<IChatClient> _mockChatClient = null!;
+		private Mock<IChatClientFactory> _mockChatClientFactory = null!;
 		private IMemoryCache _memoryCache = null!;
 		private Mock<IConfiguration> _mockConfiguration = null!;
 		private ChatController _sut = null!;
@@ -25,10 +26,12 @@ namespace ClippyWeb.Tests.Controllers
 		public void TestInitialize()
 		{
 			_mockChatClient = new Mock<IChatClient>();
+			_mockChatClientFactory = new Mock<IChatClientFactory>();
+			_mockChatClientFactory.Setup(f => f.GetOrCreateClient(It.IsAny<string>())).Returns(_mockChatClient.Object);
 			_memoryCache = new MemoryCache(new MemoryCacheOptions());
 			_mockConfiguration = new Mock<IConfiguration>();
 
-			_sut = new ChatController(_mockChatClient.Object, _memoryCache, _mockConfiguration.Object);
+			_sut = new ChatController(_mockChatClientFactory.Object, _memoryCache, _mockConfiguration.Object);
 			SetupHttpContext();
 		}
 

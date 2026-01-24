@@ -2,6 +2,7 @@ using System.Net.NetworkInformation;
 
 using ClippyWeb.Util;
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 
 using Serilog;
@@ -82,7 +83,7 @@ namespace ClippyWeb
 			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
 			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
 
-			builder.Services.AddSingleton<IChatClient>(provider =>
+			builder.Services.AddSingleton<IChatClientFactory>(provider =>
 			{
 				string? serviceUrl = builder.Configuration["ServiceUrl"];
 				if (string.IsNullOrEmpty(serviceUrl))
@@ -100,7 +101,8 @@ namespace ClippyWeb
 
 				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
-				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model, apiKey);
+				var cache = provider.GetRequiredService<IMemoryCache>();
+				return new SemanticKernelHelper.ChatClientFactory(serviceUrl, model, apiKey ?? string.Empty, cache);
 			});
 		}
 

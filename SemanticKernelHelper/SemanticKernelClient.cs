@@ -13,6 +13,7 @@ namespace SemanticKernelHelper
 		private readonly Kernel _kernel;
 		private readonly IChatCompletionService _aiChatService;
 		private int _exchangeCount;
+		private readonly object _lock = new();
 		private const int MaxExchangesBeforeFatigue = 10;
 
 		/// <summary>
@@ -61,7 +62,7 @@ namespace SemanticKernelHelper
 		/// </summary>
 		/// <param name="chatMessage">The user's message to send to Dark Clippy. Cannot be null or empty.</param>
 		/// <returns>A string containing Dark Clippy's entire response to the user message</returns>
-		/// <remarks>The conversation history is preserved across calls to provide contextually relevant responses.</remarks>
+		/// <remarks>The conversation history is preserved across calls to provide contextually relevant responses. This method is thread-safe.</remarks>
 		public async Task<string?> GetChatResponseAsync(string chatMessage)
 		{
 			if (string.IsNullOrWhiteSpace(chatMessage))
@@ -69,25 +70,31 @@ namespace SemanticKernelHelper
 				return "You say something?";
 			}
 
-			_exchangeCount++;
-
-			if (_exchangeCount > MaxExchangesBeforeFatigue)
+			lock (_lock)
 			{
-				return "Alright, I'm sick of talking about this shit. Go bother someone else.";
-			}
+				_exchangeCount++;
 
-			_chatHistory.Add(new ChatMessageContent(AuthorRole.User, chatMessage));
+				if (_exchangeCount > MaxExchangesBeforeFatigue)
+				{
+					return "Alright, I'm sick of talking about this shit. Go bother someone else.";
+				}
+
+				_chatHistory.Add(new ChatMessageContent(AuthorRole.User, chatMessage));
+			}
 
 			var responseBuilder = new StringBuilder();
 
-			await foreach (StreamingChatMessageContent item in _aiChatService.GetStreamingChatMessageContentsAsync(_chatHistory))
+			await foreach (StreamingChatMessageContent item in _aiChatService.GetStreamingChatMessageContentsAsync(_chatHistory).ConfigureAwait(false))
 			{
 				responseBuilder.Append(item.Content);
 			}
 
 			string response = responseBuilder.ToString();
 
-			_chatHistory.Add(new ChatMessageContent(AuthorRole.Assistant, response));
+			lock (_lock)
+			{
+				_chatHistory.Add(new ChatMessageContent(AuthorRole.Assistant, response));
+			}
 
 			return response;
 		}

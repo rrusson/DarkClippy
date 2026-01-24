@@ -16,14 +16,14 @@ namespace ClippyWeb.Controllers
 	public class ChatController : ControllerBase
 	{
 		private const string RequestInProgressKey = nameof(RequestInProgressKey);
-		private readonly IChatClient _chatClient;
+		private readonly IChatClientFactory _chatClientFactory;
 		private readonly Markdown _markdownConverter = new();
 		private readonly IMemoryCache _cache;
 		private readonly IConfiguration _configuration;
 
-		public ChatController(IChatClient chatClient, IMemoryCache cache, IConfiguration configuration)
+		public ChatController(IChatClientFactory chatClientFactory, IMemoryCache cache, IConfiguration configuration)
 		{
-			_chatClient = chatClient;
+			_chatClientFactory = chatClientFactory;
 			_cache = cache;
 			_configuration = configuration;
 			Log.Information("ChatController initialized");
@@ -46,7 +46,8 @@ namespace ClippyWeb.Controllers
 
 			try
 			{
-				var response = await _chatClient.GetChatResponseAsync(question);
+				IChatClient chatClient = _chatClientFactory.GetOrCreateClient(ipAddress);
+				var response = await chatClient.GetChatResponseAsync(question);
 
 				if (response == null)
 				{

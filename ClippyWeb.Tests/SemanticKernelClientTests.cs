@@ -65,5 +65,33 @@ namespace ClippyWeb.Tests
 
 			Assert.AreEqual("You say something?", response);
 		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public void IfApiUrlIsNullThenThrowsArgumentNullException()
+		{
+			_ = new SemanticKernelClient(null!, TestModel, TestApiKey);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(ArgumentNullException))]
+		public void IfModelIsNullThenThrowsArgumentNullException()
+		{
+			_ = new SemanticKernelClient(TestApiUrl, null!, TestApiKey);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(UriFormatException))]
+		public void IfApiUrlIsInvalidThenThrowsUriFormatException()
+		{
+			_ = new SemanticKernelClient("not-a-valid-url", TestModel, TestApiKey);
+		}
+
+		[TestMethod]
+		[ExpectedException(typeof(UriFormatException))]
+		public void IfApiUrlIsNotHttpOrHttpsThenThrowsUriFormatException()
+		{
+			_ = new SemanticKernelClient("ftp://localhost:11434", TestModel, TestApiKey);
+		}
 	}
 }
