@@ -32,10 +32,13 @@ namespace ClippyWeb.Util.UnitTests
 		public void Dispose_WhenCalled_DoesNotThrow()
 		{
 			// Arrange
-			var sut = new global::ClippyWeb.Util.TcpClientWrapper();
+			var sut = new TcpClientWrapper();
 
-			// Act & Assert
+			// Act
 			sut.Dispose();
+
+			// Assert
+			Assert.IsTrue(true); // Dispose completed without throwing
 		}
 
 		/// <summary>
@@ -45,28 +48,12 @@ namespace ClippyWeb.Util.UnitTests
 		public void Dispose_WhenCalledMultipleTimes_DoesNotThrow()
 		{
 			// Arrange
-			var sut = new global::ClippyWeb.Util.TcpClientWrapper();
+			var sut = new TcpClientWrapper();
 
 			// Act & Assert
 			sut.Dispose();
 			sut.Dispose();
 			sut.Dispose();
-		}
-
-		/// <summary>
-		/// Helper class to track Dispose(bool) calls for testing purposes.
-		/// </summary>
-		private sealed class DisposableTestWrapper : global::ClippyWeb.Util.TcpClientWrapper
-		{
-			public bool DisposeCalled { get; private set; }
-			public bool DisposingParameter { get; private set; }
-
-			protected override void Dispose(bool disposing)
-			{
-				DisposeCalled = true;
-				DisposingParameter = disposing;
-				base.Dispose(disposing);
-			}
 		}
 
 		/// <summary>
@@ -433,6 +420,24 @@ namespace ClippyWeb.Util.UnitTests
 			{
 				// Expected if timeout occurs before connection fails
 				Assert.IsTrue(true);
+			}
+		}
+
+
+		/// <summary>
+		/// Helper class to track Dispose(bool) calls for testing purposes.
+		/// </summary>
+		private sealed class DisposableTestWrapper : global::ClippyWeb.Util.TcpClientWrapper
+		{
+			public bool DisposeCalled { get; private set; }
+
+			public bool DisposingParameter { get; private set; }
+
+			protected override void Dispose(bool disposing)
+			{
+				DisposeCalled = true;
+				DisposingParameter = disposing;
+				base.Dispose(disposing);
 			}
 		}
 	}
