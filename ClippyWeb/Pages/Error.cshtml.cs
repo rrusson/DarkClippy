@@ -11,10 +11,11 @@ namespace ClippyWeb.Pages
 	[IgnoreAntiforgeryToken]
 	public class ErrorModel : PageModel
 	{
-		public string? RequestId { get; set; }
-		public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
 		private readonly IConfiguration _configuration;
+
+		public string? RequestId { get; set; }
+
+		public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
 
 		public ErrorModel(IConfiguration configuration)
 		{

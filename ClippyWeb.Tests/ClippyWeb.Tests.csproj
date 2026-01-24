@@ -21,12 +21,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ClippyWeb\ClippyWeb.csproj" />
+		<ProjectReference Include="..\SemanticKernelHelper\SemanticKernelHelper.csproj" />
 		<ProjectReference Include="..\SharedInterfaces\SharedInterfaces.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Util\" />
-		<Folder Include="Pages\" />
 	</ItemGroup>
 
 </Project>

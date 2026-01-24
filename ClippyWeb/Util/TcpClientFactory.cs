@@ -1,5 +1,4 @@
 using SharedInterfaces;
-using System.Net.Sockets;
 
 namespace ClippyWeb.Util
 {
@@ -7,9 +6,6 @@ namespace ClippyWeb.Util
 	public class TcpClientFactory : ITcpClientFactory
 	{
 		/// <inheritdoc/>
-		public ITcpClient Create()
-		{
-			return new TcpClientWrapper();
-		}
+		public ITcpClient Create() => new TcpClientWrapper();
 	}
 }

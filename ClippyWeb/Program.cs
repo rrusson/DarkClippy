@@ -1,13 +1,14 @@
-using System.Net.NetworkInformation;
+using System.Diagnostics.CodeAnalysis;
 
 using ClippyWeb.Util;
 
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Caching.Memory;
 
 using Serilog;
 using Serilog.Events;
 
 using SharedInterfaces;
+
 
 namespace ClippyWeb
 {
@@ -82,7 +83,7 @@ namespace ClippyWeb
 			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
 			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
 
-			builder.Services.AddSingleton<IChatClient>(provider =>
+			builder.Services.AddSingleton<IChatClientFactory>(provider =>
 			{
 				string? serviceUrl = builder.Configuration["ServiceUrl"];
 				if (string.IsNullOrEmpty(serviceUrl))
@@ -96,9 +97,12 @@ namespace ClippyWeb
 					throw new InvalidOperationException("Please supply a config value for Model.");
 				}
 
+				string? apiKey = builder.Configuration["ApiKey"];
+
 				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
-				return new SemanticKernelHelper.SemanticKernelClient(serviceUrl, model);
+				var cache = provider.GetRequiredService<IMemoryCache>();
+				return new SemanticKernelHelper.ChatClientFactory(serviceUrl, model, apiKey ?? string.Empty, cache);
 			});
 		}
 
@@ -109,6 +113,7 @@ namespace ClippyWeb
 		/// <exception cref="System.Configuration.ConfigurationErrorsException">Thrown if the logging directory path setting is missing from the configuration.</exception>
 		/// <remarks>This method sets up Serilog to log to both the console and a rolling file in the specified directory.
 		/// The log file is rotated daily and limited in size and retention. Logging levels for Microsoft and ASP.NET Core components are set to warning or higher.</remarks>
+		[ExcludeFromCodeCoverage]
 		private static void SetupLogging(ConfigurationManager configuration)
 		{
 			string logPath = configuration["LogPath"] ?? throw new System.Configuration.ConfigurationErrorsException("Logging directory path setting missing from appsettings.");

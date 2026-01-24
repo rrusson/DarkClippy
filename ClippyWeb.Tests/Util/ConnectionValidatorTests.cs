@@ -1,6 +1,3 @@
-using System.Net;
-using System.Net.Sockets;
-
 using ClippyWeb.Util;
 
 using Microsoft.Extensions.Configuration;

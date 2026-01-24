@@ -50,7 +50,7 @@ jobs:
             /k:"rrusson_DarkClippy" \
             /o:"rrusson" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="${{ SONAR_TOKEN }}" \
+            /d:sonar.token="${SONAR_TOKEN}" \
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml"
 
       - name: Restore
