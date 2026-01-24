@@ -61,10 +61,9 @@ jobs:
 
       - name: Test with coverage (OpenCover)
         run: |
-          dotnet test --no-build -c Release \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat=opencover \
-            /p:CoverletOutput=./TestResults/coverage/
+            dotnet test --no-build -c Release \
+            --settings coverlet.runsettings \
+            --collect:"XPlat Code Coverage"
 
       - name: SonarCloud - End analysis
       # Generate a token on Sonarcloud.io, add it to the secrets of this repo with the name SONAR_TOKEN (Settings > Secrets > Actions > add new repository secret)
