@@ -1,5 +1,6 @@
 ﻿using System.Text;
 
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
@@ -11,6 +12,7 @@ namespace SemanticKernelHelper
 	{
 		private readonly ChatHistory _chatHistory = [];
 		private readonly IChatCompletionService _aiChatService;
+		private readonly Kernel _kernel;
 		private int _exchangeCount;
 		private readonly object _lock = new();
 		private const int MaxExchangesBeforeFatigue = 10;
@@ -21,9 +23,16 @@ namespace SemanticKernelHelper
 		/// <param name="apiUrl">The base URL of the OpenAI-compatible API endpoint. Must be a valid URL.</param>
 		/// <param name="model">The identifier of the model to use for chat completion.</param>
 		/// <param name="apiKey">Optional API key for authentication. Defaults to empty string for local services like Ollama.</param>
+		/// <param name="mcpServers">Optional collection of MCP servers to integrate as plugins.</param>
+		/// <param name="logger">Optional logger for diagnostic information.</param>
 		/// <exception cref="ArgumentNullException">Thrown when apiUrl or model is null.</exception>
 		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
-		public SemanticKernelClient(string apiUrl, string model, string? apiKey = null)
+		public SemanticKernelClient(
+			string apiUrl,
+			string model,
+			string? apiKey = null,
+			IEnumerable<StdioMcpServer>? mcpServers = null,
+			ILogger? logger = null)
 		{
 			ArgumentNullException.ThrowIfNull(apiUrl);
 			ArgumentNullException.ThrowIfNull(model);
@@ -36,17 +45,35 @@ namespace SemanticKernelHelper
 
 			_exchangeCount = 0;
 
-			Kernel kernel = Kernel.CreateBuilder()
+			_kernel = Kernel.CreateBuilder()
 				.AddOpenAIChatCompletion(
 					modelId: model,
 					endpoint: apiUri,
 					apiKey: apiKey ?? string.Empty)
 				.Build();
 
-			_aiChatService = kernel.GetRequiredService<IChatCompletionService>();
+			_aiChatService = _kernel.GetRequiredService<IChatCompletionService>();
 
 			string systemPrompt = "You are Dark Clippy, a profane talking paperclip. You give damn snarky, sarcastic, impatient, and insulting, short answers to questions. And you swear a lot.";
 			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, systemPrompt));
+
+			// Add MCP server plugins if provided
+			if (mcpServers != null)
+			{
+				foreach (var mcpServer in mcpServers)
+				{
+					try
+					{
+						var plugin = mcpServer.CreatePlugin();
+						_kernel.Plugins.Add(plugin);
+						logger?.LogInformation("MCP plugin '{PluginName}' added successfully", mcpServer.Name);
+					}
+					catch (Exception ex)
+					{
+						logger?.LogWarning(ex, "Failed to add MCP plugin '{PluginName}', skipping", mcpServer.Name);
+					}
+				}
+			}
 		}
 
 		/// <summary>

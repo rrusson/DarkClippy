@@ -83,6 +83,42 @@ namespace ClippyWeb
 			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
 			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
 
+			// Set up MCP Server Registry
+			builder.Services.AddSingleton<IMcpServerRegistry>(provider =>
+			{
+				var registry = new SemanticKernelHelper.McpServerRegistry();
+				var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+				var logger = loggerFactory.CreateLogger("DarkClippy.MCP");
+				var mcpConfigs = builder.Configuration.GetSection("McpServers").Get<List<McpServerConfiguration>>();
+
+				if (mcpConfigs != null)
+				{
+					foreach (var config in mcpConfigs)
+					{
+						if (config.Enabled)
+						{
+							try
+							{
+								var mcpServer = new SemanticKernelHelper.StdioMcpServer(config, logger);
+								mcpServer.InitializeAsync().Wait();
+								registry.Register(mcpServer);
+								Log.Information("DarkClippy: MCP server '{Name}' registered and initialized", config.Name);
+							}
+							catch (Exception ex)
+							{
+								Log.Warning(ex, "DarkClippy: Failed to initialize MCP server '{Name}', skipping", config.Name);
+							}
+						}
+						else
+						{
+							Log.Information("DarkClippy: MCP server '{Name}' is disabled, skipping", config.Name);
+						}
+					}
+				}
+
+				return registry;
+			});
+
 			builder.Services.AddSingleton<IChatClientFactory>(provider =>
 			{
 				string? serviceUrl = builder.Configuration["ServiceUrl"];
@@ -102,7 +138,11 @@ namespace ClippyWeb
 				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
 
 				var cache = provider.GetRequiredService<IMemoryCache>();
-				return new SemanticKernelHelper.ChatClientFactory(serviceUrl, model, apiKey ?? string.Empty, cache);
+				var mcpRegistry = provider.GetRequiredService<IMcpServerRegistry>();
+				var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+				var logger = loggerFactory.CreateLogger("DarkClippy.SemanticKernel");
+
+				return new SemanticKernelHelper.ChatClientFactory(serviceUrl, model, apiKey ?? string.Empty, cache, mcpRegistry, logger);
 			});
 		}
 
