@@ -102,8 +102,6 @@ namespace SemanticKernelHelper
 
 				_initialized = true;
 				_logger?.LogInformation("MCP server '{Name}' initialized successfully", Name);
-
-				await Task.CompletedTask.ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -116,15 +114,14 @@ namespace SemanticKernelHelper
 		/// Gets the available tools from this MCP server.
 		/// </summary>
 		/// <returns>A collection of tool definitions available from this server.</returns>
-		public async Task<IEnumerable<object>> GetToolsAsync()
+		public Task<IEnumerable<object>> GetToolsAsync()
 		{
 			if (!_initialized)
 			{
 				throw new InvalidOperationException($"MCP server '{Name}' is not initialized. Call InitializeAsync first.");
 			}
 
-			await Task.CompletedTask.ConfigureAwait(false);
-			return [];
+			return Task.FromResult<IEnumerable<object>>([]);
 		}
 
 		/// <summary>

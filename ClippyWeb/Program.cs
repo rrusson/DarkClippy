@@ -100,7 +100,7 @@ namespace ClippyWeb
 							try
 							{
 								var mcpServer = new SemanticKernelHelper.StdioMcpServer(config, logger);
-								mcpServer.InitializeAsync().Wait();
+								mcpServer.InitializeAsync().GetAwaiter().GetResult();
 								registry.Register(mcpServer);
 								Log.Information("DarkClippy: MCP server '{Name}' registered and initialized", config.Name);
 							}
