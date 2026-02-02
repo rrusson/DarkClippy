@@ -36,6 +36,11 @@ namespace SemanticKernelHelper
 		public Dictionary<string, string>? EnvironmentVariables { get; set; }
 
 		/// <summary>
+		/// Gets or sets the working directory for the server process.
+		/// </summary>
+		public string? WorkingDirectory { get; set; }
+
+		/// <summary>
 		/// Gets or sets the endpoint URL for HTTP-based servers.
 		/// </summary>
 		public string? Endpoint { get; set; }

@@ -79,12 +79,11 @@ namespace ClippyWeb.Tests
 		}
 
 		[TestMethod]
-		[ExpectedException(typeof(ArgumentNullException))]
 		public void WhenNullServerRegisteredThenThrowsException()
 		{
 			var registry = new McpServerRegistry();
 
-			registry.Register(null!);
+			Assert.ThrowsExactly<ArgumentNullException>(() => registry.Register(null!));
 		}
 	}
 }

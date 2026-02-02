@@ -69,9 +69,18 @@ namespace SemanticKernelHelper
 			{
 				_logger?.LogInformation("Initializing MCP server: {Name}", Name);
 
+				// Resolve command for Windows (npx requires .cmd extension when UseShellExecute = false)
+				string command = _configuration.Command;
+				if (OperatingSystem.IsWindows() && 
+					(command.Equals("npx", StringComparison.OrdinalIgnoreCase) || 
+					 command.Equals("npm", StringComparison.OrdinalIgnoreCase)))
+				{
+					command += ".cmd";
+				}
+
 				var startInfo = new ProcessStartInfo
 				{
-					FileName = _configuration.Command,
+					FileName = command,
 					UseShellExecute = false,
 					RedirectStandardInput = true,
 					RedirectStandardOutput = true,
@@ -95,6 +104,11 @@ namespace SemanticKernelHelper
 					}
 				}
 
+				if (!string.IsNullOrEmpty(_configuration.WorkingDirectory))
+				{
+					startInfo.WorkingDirectory = _configuration.WorkingDirectory;
+				}
+
 				_process = Process.Start(startInfo);
 
 				if (_process == null)
@@ -108,6 +122,7 @@ namespace SemanticKernelHelper
 			catch (Exception ex)
 			{
 				_logger?.LogError(ex, "Failed to initialize MCP server '{Name}'", Name);
+				throw;
 			}
 		}
 

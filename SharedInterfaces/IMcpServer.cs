@@ -1,3 +1,5 @@
+using Microsoft.SemanticKernel;
+
 namespace SharedInterfaces
 {
 	/// <summary>
@@ -31,5 +33,8 @@ namespace SharedInterfaces
 		/// </summary>
 		/// <returns>A collection of tool definitions available from this server.</returns>
 		Task<IEnumerable<object>> GetToolsAsync();
+
+
+		Microsoft.SemanticKernel.KernelPlugin CreatePlugin();
 	}
 }

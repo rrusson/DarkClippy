@@ -69,7 +69,7 @@ namespace ClippyWeb.Tests.Pages
 			Assert.IsTrue(_sut.ShowRequestId);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow(null, DisplayName = "Null RequestId")]
 		[DataRow("", DisplayName = "Empty RequestId")]
 		public void IfRequestIdIsNullOrEmptyThenShowRequestIdReturnsFalse(string? requestId)
@@ -84,7 +84,7 @@ namespace ClippyWeb.Tests.Pages
 			Assert.IsFalse(result);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow("http://localhost:11434", "http://localhost:11434", DisplayName = "ServiceUrl configured")]
 		[DataRow(null, "Not configured", DisplayName = "ServiceUrl not configured")]
 		public void IfServiceUrlConfiguredThenViewDataContainsExpectedValue(string? configuredUrl, string expectedValue)
@@ -99,7 +99,7 @@ namespace ClippyWeb.Tests.Pages
 			Assert.AreEqual(expectedValue, _sut.ViewData["ServiceUrl"]);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow("llama2", "llama2", DisplayName = "Model configured")]
 		[DataRow(null, "Not configured", DisplayName = "Model not configured")]
 		public void IfModelConfiguredThenViewDataContainsExpectedValue(string? configuredModel, string expectedValue)

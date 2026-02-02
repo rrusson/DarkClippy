@@ -125,7 +125,7 @@ namespace SemanticKernelHelper
 		}
 
 		// Add MCP server plugins if provided
-		private void RegisterMcpServers(IEnumerable<StdioMcpServer>? mcpServers, ILogger? logger)
+		private async Task RegisterMcpServers(IEnumerable<IMcpServer>? mcpServers, ILogger? logger)
 		{
 			if (mcpServers == null)
 			{
@@ -136,7 +136,9 @@ namespace SemanticKernelHelper
 			{
 				try
 				{
+					await mcpServer.InitializeAsync();
 					var plugin = mcpServer.CreatePlugin();
+
 					_kernel.Plugins.Add(plugin);
 					logger?.LogInformation("MCP plugin '{PluginName}' added successfully", mcpServer.Name);
 				}

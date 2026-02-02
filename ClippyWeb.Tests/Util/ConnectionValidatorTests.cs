@@ -33,7 +33,7 @@ namespace ClippyWeb.Tests.Util
 			_sut = new ConnectionValidator(_mockPingService.Object, _mockTcpClientFactory.Object);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow(null, DisplayName = "Null ServiceUrl")]
 		[DataRow("", DisplayName = "Empty ServiceUrl")]
 		public async Task IfServiceUrlIsNullOrEmptyThenLogsWarningAndReturns(string? serviceUrl)
@@ -49,7 +49,7 @@ namespace ClippyWeb.Tests.Util
 			_mockConfiguration.VerifyNoOtherCalls();
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow("http://localhost:11434", DisplayName = "Localhost with port")]
 		[DataRow("http://127.0.0.1:8080", DisplayName = "127.0.0.1 with port")]
 		[DataRow("http://localhost", DisplayName = "Localhost without port")]
@@ -69,7 +69,7 @@ namespace ClippyWeb.Tests.Util
 			_mockTcpClient.Verify(t => t.ConnectAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.AtLeastOnce);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow("http://example.com", DisplayName = "Remote host, no port")]
 		[DataRow("http://example.com:8080", DisplayName = "Remote host with port")]
 		[DataRow("http://testhost:5000", DisplayName = "Test host with port")]
@@ -86,7 +86,7 @@ namespace ClippyWeb.Tests.Util
 			_mockPingService.Verify(t => t.PingAsync(It.IsAny<string>(), It.IsAny<int>()), Times.AtLeastOnce);
 		}
 
-		[DataTestMethod]
+		[TestMethod]
 		[DataRow("not-a-valid-uri", DisplayName = "Invalid URI format")]
 		[DataRow("   ", DisplayName = "Whitespace only")]
 		public async Task IfServiceUrlIsInvalidUriThenThrowsException(string serviceUrl)
@@ -95,7 +95,7 @@ namespace ClippyWeb.Tests.Util
 			_mockConfiguration.Setup(x => x["ServiceUrl"]).Returns(serviceUrl);
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<UriFormatException>(() => _sut.ValidateConnectionAsync(_mockConfiguration.Object));
+			await Assert.ThrowsExactlyAsync<UriFormatException>(() => _sut.ValidateConnectionAsync(_mockConfiguration.Object));
 		}
 	}
 }
