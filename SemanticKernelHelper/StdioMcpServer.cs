@@ -19,7 +19,9 @@ namespace SemanticKernelHelper
 		private readonly ILogger? _logger;
 		private Process? _process;
 		private bool _initialized;
-		private readonly object _lock = new();
+		private readonly SemaphoreSlim _stdinWriteLock = new(1, 1);
+		private int _requestId;
+		private List<McpTool>? _cachedTools;
 
 		/// <summary>
 		/// Initializes a new instance of the StdioMcpServer class.
@@ -106,7 +108,6 @@ namespace SemanticKernelHelper
 			catch (Exception ex)
 			{
 				_logger?.LogError(ex, "Failed to initialize MCP server '{Name}'", Name);
-				throw;
 			}
 		}
 
@@ -114,14 +115,111 @@ namespace SemanticKernelHelper
 		/// Gets the available tools from this MCP server.
 		/// </summary>
 		/// <returns>A collection of tool definitions available from this server.</returns>
-		public Task<IEnumerable<object>> GetToolsAsync()
+		public async Task<IEnumerable<object>> GetToolsAsync()
 		{
 			if (!_initialized)
 			{
 				throw new InvalidOperationException($"MCP server '{Name}' is not initialized. Call InitializeAsync first.");
 			}
 
-			return Task.FromResult<IEnumerable<object>>([]);
+			if (_cachedTools != null)
+			{
+				return _cachedTools;
+			}
+
+			try
+			{
+				var request = new JsonRpcRequest
+				{
+					Method = "tools/list",
+					Id = Interlocked.Increment(ref _requestId)
+				};
+
+				var responseJson = await SendRequestAsync(JsonSerializer.Serialize(request)).ConfigureAwait(false);
+				var response = JsonSerializer.Deserialize<JsonRpcResponse>(responseJson);
+
+				if (response?.Error != null)
+				{
+					_logger?.LogError("MCP server '{Name}' returned error: {ErrorMessage}", Name, response.Error.Message);
+					return [];
+				}
+
+				if (response?.Result != null)
+				{
+					var resultJson = JsonSerializer.Serialize(response.Result);
+					var listResult = JsonSerializer.Deserialize<ListToolsResult>(resultJson);
+					_cachedTools = listResult?.Tools ?? [];
+					_logger?.LogInformation("MCP server '{Name}' returned {ToolCount} tools", Name, _cachedTools.Count);
+					return _cachedTools;
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger?.LogError(ex, "Failed to get tools from MCP server '{Name}'", Name);
+			}
+
+			return [];
+		}
+
+		/// <summary>
+		/// Calls a tool on the MCP server.
+		/// </summary>
+		/// <param name="toolName">The name of the tool to call.</param>
+		/// <param name="arguments">The arguments to pass to the tool.</param>
+		/// <returns>The result from the tool call.</returns>
+		public async Task<string> CallToolAsync(string toolName, Dictionary<string, object>? arguments = null)
+		{
+			if (!_initialized)
+			{
+				throw new InvalidOperationException($"MCP server '{Name}' is not initialized. Call InitializeAsync first.");
+			}
+
+			try
+			{
+				var request = new JsonRpcRequest
+				{
+					Method = "tools/call",
+					Params = new CallToolParams
+					{
+						Name = toolName,
+						Arguments = arguments
+					},
+					Id = Interlocked.Increment(ref _requestId)
+				};
+
+				var responseJson = await SendRequestAsync(JsonSerializer.Serialize(request)).ConfigureAwait(false);
+				var response = JsonSerializer.Deserialize<JsonRpcResponse>(responseJson);
+
+				if (response?.Error != null)
+				{
+					_logger?.LogError("MCP tool '{ToolName}' on server '{ServerName}' returned error: {ErrorMessage}", toolName, Name, response.Error.Message);
+					return $"Error calling tool: {response.Error.Message}";
+				}
+
+				if (response?.Result != null)
+				{
+					var resultJson = JsonSerializer.Serialize(response.Result);
+					var callResult = JsonSerializer.Deserialize<CallToolResult>(resultJson);
+
+					if (callResult?.IsError == true)
+					{
+						var errorText = callResult.Content?.FirstOrDefault()?.Text ?? "Unknown error";
+						_logger?.LogError("MCP tool '{ToolName}' on server '{ServerName}' failed: {Error}", toolName, Name, errorText);
+						return $"Tool error: {errorText}";
+					}
+
+					var resultText = string.Join("\n", callResult?.Content?.Select(c => c.Text ?? string.Empty) ?? []);
+					_logger?.LogInformation("MCP tool '{ToolName}' on server '{ServerName}' completed successfully", toolName, Name);
+					return resultText;
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger?.LogError(ex, "Failed to call MCP tool '{ToolName}' on server '{ServerName}'", toolName, Name);
+				return $"Exception calling tool: {ex.Message}";
+			}
+
+			return "No result returned from tool";
 		}
 
 		/// <summary>
@@ -130,9 +228,81 @@ namespace SemanticKernelHelper
 		/// <returns>A kernel plugin that can be added to Semantic Kernel.</returns>
 		public KernelPlugin CreatePlugin()
 		{
-			// Sanitize the plugin name - Semantic Kernel only allows ASCII letters, digits, and underscores
-			string sanitizedName = SanitizePluginName(Name);
-			return KernelPluginFactory.CreateFromObject(new McpPlugin(this, _logger), sanitizedName);
+			// Get tools from the MCP server
+			var tools = GetToolsAsync().GetAwaiter().GetResult().OfType<McpTool>().ToList();
+
+			if (tools.Count == 0)
+			{
+				_logger?.LogWarning("MCP server '{Name}' has no tools available", Name);
+				// Return empty plugin if no tools
+				string sanitizedName = SanitizePluginName(Name);
+				return KernelPluginFactory.CreateFromObject(new McpPlugin(this), sanitizedName);
+			}
+
+			// Create kernel functions for each tool
+			var functions = new List<KernelFunction>();
+			foreach (var tool in tools)
+			{
+				try
+				{
+					var function = CreateKernelFunctionForTool(tool);
+					functions.Add(function);
+				}
+				catch (Exception ex)
+				{
+					_logger?.LogWarning(ex, "Failed to create kernel function for tool '{ToolName}' on server '{ServerName}'", tool.Name, Name);
+				}
+			}
+
+			string pluginName = SanitizePluginName(Name);
+			return KernelPluginFactory.CreateFromFunctions(pluginName, Description, functions);
+		}
+
+		/// <summary>
+		/// Creates a KernelFunction for an MCP tool.
+		/// </summary>
+		/// <param name="tool">The MCP tool definition.</param>
+		/// <returns>A KernelFunction that invokes the MCP tool.</returns>
+		private KernelFunction CreateKernelFunctionForTool(McpTool tool)
+		{
+			// Create parameters for the function
+			var parameters = new List<KernelParameterMetadata>();
+			if (tool.InputSchema?.Properties != null)
+			{
+				foreach (var prop in tool.InputSchema.Properties)
+				{
+					var isRequired = tool.InputSchema.Required?.Contains(prop.Key) ?? false;
+					var parameter = new KernelParameterMetadata(prop.Key)
+					{
+						Description = prop.Value.Description ?? string.Empty,
+						IsRequired = isRequired,
+						ParameterType = typeof(string)
+					};
+					parameters.Add(parameter);
+				}
+			}
+
+			// Create the function that will invoke the MCP tool
+			var function = KernelFunctionFactory.CreateFromMethod(
+				method: async (KernelArguments args) =>
+				{
+					var arguments = new Dictionary<string, object>();
+					foreach (var param in parameters.Select(p => p.Name))
+					{
+						if (args.TryGetValue(param, out var value))
+						{
+							arguments[param] = value ?? string.Empty;
+						}
+					}
+
+					return await CallToolAsync(tool.Name, arguments).ConfigureAwait(false);
+				},
+				parameters: parameters,
+				functionName: tool.Name,
+				description: tool.Description ?? $"Calls the {tool.Name} tool on the {Name} MCP server"
+			);
+
+			return function;
 		}
 
 		/// <summary>
@@ -170,10 +340,15 @@ namespace SemanticKernelHelper
 				throw new InvalidOperationException($"MCP server process '{Name}' is not running");
 			}
 
-			lock (_lock)
+			await _stdinWriteLock.WaitAsync().ConfigureAwait(false);
+			try
 			{
-				_process.StandardInput.WriteLine(request);
-				_process.StandardInput.Flush();
+				await _process.StandardInput.WriteLineAsync(request).ConfigureAwait(false);
+				await _process.StandardInput.FlushAsync().ConfigureAwait(false);
+			}
+			finally
+			{
+				_stdinWriteLock.Release();
 			}
 
 			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -206,22 +381,21 @@ namespace SemanticKernelHelper
 				}
 			}
 
+			_stdinWriteLock.Dispose();
 			_initialized = false;
 			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
-		/// Inner class that represents the MCP plugin with tool methods.
+		/// Inner class that represents the MCP plugin with tool methods (used only when no tools are available).
 		/// </summary>
-		private class McpPlugin
+		private sealed class McpPlugin
 		{
 			private readonly StdioMcpServer _server;
-			private readonly ILogger? _logger;
 
-			public McpPlugin(StdioMcpServer server, ILogger? logger)
+			public McpPlugin(StdioMcpServer server)
 			{
 				_server = server;
-				_logger = logger;
 			}
 
 			/// <summary>

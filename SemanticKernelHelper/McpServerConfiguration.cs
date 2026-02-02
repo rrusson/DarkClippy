@@ -1,4 +1,4 @@
-namespace SharedInterfaces
+namespace SemanticKernelHelper
 {
 	/// <summary>
 	/// Configuration for an MCP server.

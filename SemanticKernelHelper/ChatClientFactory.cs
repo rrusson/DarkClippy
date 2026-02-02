@@ -12,6 +12,7 @@ namespace SemanticKernelHelper
 		private readonly string _apiKey;
 		private readonly IMemoryCache _cache;
 		private readonly IMcpServerRegistry? _mcpServerRegistry;
+		private readonly IModelCapabilityDetector? _capabilityDetector;
 		private readonly ILogger? _logger;
 		private readonly object _lock = new();
 
@@ -21,6 +22,7 @@ namespace SemanticKernelHelper
 			string apiKey,
 			IMemoryCache cache,
 			IMcpServerRegistry? mcpServerRegistry = null,
+			IModelCapabilityDetector? capabilityDetector = null,
 			ILogger? logger = null)
 		{
 			_serviceUrl = serviceUrl;
@@ -28,6 +30,7 @@ namespace SemanticKernelHelper
 			_apiKey = apiKey;
 			_cache = cache;
 			_mcpServerRegistry = mcpServerRegistry;
+			_capabilityDetector = capabilityDetector;
 			_logger = logger;
 		}
 
@@ -50,7 +53,7 @@ namespace SemanticKernelHelper
 					mcpServers = _mcpServerRegistry.GetEnabled().OfType<StdioMcpServer>();
 				}
 
-				var newClient = new SemanticKernelClient(_serviceUrl, _model, _apiKey, mcpServers, _logger);
+				var newClient = new SemanticKernelClient(_serviceUrl, _model, _apiKey, mcpServers, _capabilityDetector, _logger);
 				var cacheOptions = new MemoryCacheEntryOptions
 				{
 					SlidingExpiration = TimeSpan.FromMinutes(30),

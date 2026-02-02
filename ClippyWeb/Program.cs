@@ -18,7 +18,7 @@ namespace ClippyWeb
 		{
 			var builder = WebApplication.CreateBuilder(args);
 			builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-			SetupLogging(builder.Configuration);
+			LoggingSetup.SetupLogging(builder.Configuration);
 
 			try
 			{
@@ -36,7 +36,7 @@ namespace ClippyWeb
 					options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 				});
 
-				await SetupLlmService(builder);
+				await LlmSetup.SetupLlmService(builder);
 
 				var app = builder.Build();
 
@@ -64,136 +64,6 @@ namespace ClippyWeb
 			{
 				await Log.CloseAndFlushAsync();
 			}
-		}
-
-		/// <summary>
-		/// Configures and registers the LLM chat service client with the application's dependency injection container.
-		/// </summary>
-		/// <param name="builder">The WebApplicationBuilder used to configure services and access application configuration settings.</param>
-		/// <exception cref="InvalidOperationException">Thrown if the required configuration values for 'ServiceUrl' or 'Model' are missing or empty.</exception>
-		/// <remarks>This method must be called during application startup to ensure that the IChatClient service is available for dependency injection.
-		/// The method expects the application's configuration to provide valid values for ServiceUrl and Model.</remarks>
-		private static async Task SetupLlmService(WebApplicationBuilder builder)
-		{
-			builder.Services.AddSingleton<IPingService, PingService>();
-			builder.Services.AddSingleton<ITcpClientFactory, TcpClientFactory>();
-			builder.Services.AddSingleton<IConnectionValidator, ConnectionValidator>();
-
-			using var scope = builder.Services.BuildServiceProvider().CreateScope();
-			var validator = scope.ServiceProvider.GetRequiredService<IConnectionValidator>();
-			await validator.ValidateConnectionAsync(builder.Configuration).ConfigureAwait(false);
-
-			// Set up MCP Server Registry
-			builder.Services.AddSingleton<IMcpServerRegistry>(provider =>
-			{
-				var registry = new SemanticKernelHelper.McpServerRegistry();
-				var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-				var logger = loggerFactory.CreateLogger("DarkClippy.MCP");
-				var mcpConfigs = builder.Configuration.GetSection("McpServers").Get<List<McpServerConfiguration>>();
-
-				if (mcpConfigs != null)
-				{
-					foreach (var config in mcpConfigs)
-					{
-						if (config.Enabled)
-						{
-							try
-							{
-								var mcpServer = new SemanticKernelHelper.StdioMcpServer(config, logger);
-								mcpServer.InitializeAsync().GetAwaiter().GetResult();
-								registry.Register(mcpServer);
-								Log.Information("DarkClippy: MCP server '{Name}' registered and initialized", config.Name);
-							}
-							catch (Exception ex)
-							{
-								Log.Warning(ex, "DarkClippy: Failed to initialize MCP server '{Name}', skipping", config.Name);
-							}
-						}
-						else
-						{
-							Log.Information("DarkClippy: MCP server '{Name}' is disabled, skipping", config.Name);
-						}
-					}
-				}
-
-				return registry;
-			});
-
-			builder.Services.AddSingleton<IChatClientFactory>(provider =>
-			{
-				string? serviceUrl = builder.Configuration["ServiceUrl"];
-				if (string.IsNullOrEmpty(serviceUrl))
-				{
-					throw new InvalidOperationException("Please supply a config value for ServiceUrl.");
-				}
-
-				string? model = builder.Configuration["Model"];
-				if (string.IsNullOrEmpty(model))
-				{
-					throw new InvalidOperationException("Please supply a config value for Model.");
-				}
-
-				string? apiKey = builder.Configuration["ApiKey"];
-
-				Log.Information("DarkClippy: Connecting to LLM service at: {ServiceUrl} with model: {Model}", serviceUrl, model);
-
-				var cache = provider.GetRequiredService<IMemoryCache>();
-				var mcpRegistry = provider.GetRequiredService<IMcpServerRegistry>();
-				var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-				var logger = loggerFactory.CreateLogger("DarkClippy.SemanticKernel");
-
-				return new SemanticKernelHelper.ChatClientFactory(serviceUrl, model, apiKey ?? string.Empty, cache, mcpRegistry, logger);
-			});
-		}
-
-		/// <summary>
-		/// Configures the logging system using configuration settings
-		/// </summary>
-		/// <param name="configuration">The configuration manager containing application settings, including the logging directory path.</param>
-		/// <exception cref="System.Configuration.ConfigurationErrorsException">Thrown if the logging directory path setting is missing from the configuration.</exception>
-		/// <remarks>This method sets up Serilog to log to both the console and a rolling file in the specified directory.
-		/// The log file is rotated daily and limited in size and retention. Logging levels for Microsoft and ASP.NET Core components are set to warning or higher.</remarks>
-		[ExcludeFromCodeCoverage]
-		private static void SetupLogging(ConfigurationManager configuration)
-		{
-			string logPath = configuration["LogPath"] ?? throw new System.Configuration.ConfigurationErrorsException("Logging directory path setting missing from appsettings.");
-
-			if (!Directory.Exists(logPath))
-			{
-				try
-				{
-					Directory.CreateDirectory(logPath);
-				}
-				catch (Exception ex)
-				{
-					throw new InvalidOperationException($"Failed to create log directory at '{logPath}'. See inner exception for details.", ex);
-				}
-			}
-
-			// Validate that the directory is writable
-			try
-			{
-				string testFilePath = Path.Combine(logPath, Path.GetRandomFileName());
-				using (FileStream fs = File.Create(testFilePath, 1, FileOptions.DeleteOnClose))
-				{
-					// Successfully created and will delete on close
-				}
-			}
-			catch (Exception ex)
-			{
-				throw new InvalidOperationException($"The log directory '{logPath}' is not writable. Please check permissions. See inner exception for details.", ex);
-			}
-			Log.Logger = new LoggerConfiguration()
-				.MinimumLevel.Information()
-				.MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-				.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-				.WriteTo.Console()
-				.WriteTo.File(@$"{logPath}clippy.log",
-					rollingInterval: RollingInterval.Day,
-					fileSizeLimitBytes: 10 * 1024 * 1024,
-					retainedFileCountLimit: 30,
-					outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-				.CreateLogger();
 		}
 	}
 }

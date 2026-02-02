@@ -29,6 +29,9 @@ csharp_style_expression_bodied_local_functions = false:silent
 # CA1305: Specify IFormatProvider
 dotnet_diagnostic.CA1305.severity = silent
 
+# CA1848: Use the LoggerMessage delegates (overly complicated for simple logging)
+dotnet_diagnostic.CA1848.severity = none
+
 [*.{cs,vb}]
 #### Naming styles ####
 
