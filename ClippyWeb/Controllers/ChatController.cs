@@ -46,8 +46,8 @@ namespace ClippyWeb.Controllers
 
 			try
 			{
-				IChatClient chatClient = _chatClientFactory.GetOrCreateClient(ipAddress);
-				var response = await chatClient.GetChatResponseAsync(question);
+				IChatClient chatClient = await _chatClientFactory.GetOrCreateClientAsync(ipAddress).ConfigureAwait(false);
+				var response = await chatClient.GetChatResponseAsync(question).ConfigureAwait(false);
 
 				if (response == null)
 				{

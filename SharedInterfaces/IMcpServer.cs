@@ -34,7 +34,10 @@ namespace SharedInterfaces
 		/// <returns>A collection of tool definitions available from this server.</returns>
 		Task<IEnumerable<object>> GetToolsAsync();
 
-
-		Microsoft.SemanticKernel.KernelPlugin CreatePlugin();
+		/// <summary>
+		/// Creates a Semantic Kernel plugin from this MCP server.
+		/// </summary>
+		/// <returns>A task that represents the asynchronous plugin creation operation.</returns>
+		Task<Microsoft.SemanticKernel.KernelPlugin> CreatePluginAsync();
 	}
 }

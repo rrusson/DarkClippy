@@ -17,7 +17,7 @@ namespace SemanticKernelHelper
 		private int _exchangeCount;
 		private readonly object _lock = new();
 		private const int MaxExchangesBeforeFatigue = 10;
-		private readonly bool _supportsTools;
+		private bool _supportsTools;
 
 		/// <summary>
 		/// Initializes a new instance of the SemanticKernelClient with the specified configuration.
@@ -34,8 +34,6 @@ namespace SemanticKernelHelper
 			string apiUrl,
 			string model,
 			string? apiKey = null,
-			IEnumerable<StdioMcpServer>? mcpServers = null,
-			IModelCapabilityDetector? capabilityDetector = null,
 			ILogger? logger = null)
 		{
 			ArgumentNullException.ThrowIfNull(apiUrl);
@@ -48,14 +46,6 @@ namespace SemanticKernelHelper
 
 			_exchangeCount = 0;
 
-			// Check if model supports tools
-			_supportsTools = capabilityDetector?.SupportsToolsAsync(model).GetAwaiter().GetResult() ?? false;
-
-			if (!_supportsTools)
-			{
-				logger?.LogWarning("Model '{Model}' does not support tools/function calling - MCP plugins will be disabled", model);
-			}
-
 			_kernel = Kernel.CreateBuilder()
 				.AddOpenAIChatCompletion(
 					modelId: model,
@@ -66,15 +56,48 @@ namespace SemanticKernelHelper
 			_aiChatService = _kernel.GetRequiredService<IChatCompletionService>();
 
 			_chatHistory.Add(new ChatMessageContent(AuthorRole.System, _systemPrompt));
+		}
 
-			if (_supportsTools)
+		/// <summary>
+		/// Creates and initializes a new instance of the SemanticKernelClient with the specified configuration.
+		/// </summary>
+		/// <param name="apiUrl">The base URL of the OpenAI-compatible API endpoint. Must be a valid URL.</param>
+		/// <param name="model">The identifier of the model to use for chat completion.</param>
+		/// <param name="apiKey">Optional API key for authentication. Defaults to empty string for local services like Ollama.</param>
+		/// <param name="mcpServers">Optional collection of MCP servers to integrate as plugins.</param>
+		/// <param name="capabilityDetector">Optional capability detector to check if the model supports tools.</param>
+		/// <param name="logger">Optional logger for diagnostic information.</param>
+		/// <returns>A fully initialized SemanticKernelClient instance.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when apiUrl or model is null.</exception>
+		/// <exception cref="UriFormatException">Thrown when apiUrl is not a valid URL format.</exception>
+		public static async Task<SemanticKernelClient> CreateAsync(
+			string apiUrl,
+			string model,
+			string? apiKey = null,
+			IEnumerable<StdioMcpServer>? mcpServers = null,
+			IModelCapabilityDetector? capabilityDetector = null,
+			ILogger? logger = null)
+		{
+			var client = new SemanticKernelClient(apiUrl, model, apiKey, logger);
+
+			// Check if model supports tools
+			client._supportsTools = capabilityDetector != null && await capabilityDetector.SupportsToolsAsync(model).ConfigureAwait(false);
+
+			if (!client._supportsTools)
 			{
-				RegisterMcpServers(mcpServers, logger);
+				logger?.LogWarning("Model '{Model}' does not support tools/function calling - MCP plugins will be disabled", model);
+			}
+
+			if (client._supportsTools)
+			{
+				await client.RegisterMcpServersAsync(mcpServers, logger).ConfigureAwait(false);
 			}
 			else if (mcpServers?.Any() == true)
 			{
 				logger?.LogInformation("Skipping registration of {Count} MCP server(s) because model does not support tools", mcpServers.Count());
 			}
+
+			return client;
 		}
 
 		/// <summary>
@@ -125,7 +148,7 @@ namespace SemanticKernelHelper
 		}
 
 		// Add MCP server plugins if provided
-		private async Task RegisterMcpServers(IEnumerable<IMcpServer>? mcpServers, ILogger? logger)
+		private async Task RegisterMcpServersAsync(IEnumerable<IMcpServer>? mcpServers, ILogger? logger)
 		{
 			if (mcpServers == null)
 			{
@@ -136,8 +159,8 @@ namespace SemanticKernelHelper
 			{
 				try
 				{
-					await mcpServer.InitializeAsync();
-					var plugin = mcpServer.CreatePlugin();
+					await mcpServer.InitializeAsync().ConfigureAwait(false);
+					var plugin = await mcpServer.CreatePluginAsync().ConfigureAwait(false);
 
 					_kernel.Plugins.Add(plugin);
 					logger?.LogInformation("MCP plugin '{PluginName}' added successfully", mcpServer.Name);

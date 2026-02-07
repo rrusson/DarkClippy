@@ -2,6 +2,6 @@ namespace SharedInterfaces
 {
 	public interface IChatClientFactory
 	{
-		IChatClient GetOrCreateClient(string sessionKey);
+		Task<IChatClient> GetOrCreateClientAsync(string sessionKey);
 	}
 }

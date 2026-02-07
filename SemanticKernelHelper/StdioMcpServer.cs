@@ -241,10 +241,10 @@ namespace SemanticKernelHelper
 		/// Creates a Semantic Kernel plugin from this MCP server.
 		/// </summary>
 		/// <returns>A kernel plugin that can be added to Semantic Kernel.</returns>
-		public KernelPlugin CreatePlugin()
+		public async Task<KernelPlugin> CreatePluginAsync()
 		{
 			// Get tools from the MCP server
-			var tools = GetToolsAsync().GetAwaiter().GetResult().OfType<McpTool>().ToList();
+			var tools = (await GetToolsAsync().ConfigureAwait(false)).OfType<McpTool>().ToList();
 
 			if (tools.Count == 0)
 			{
