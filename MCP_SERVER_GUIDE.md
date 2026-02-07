@@ -2,7 +2,25 @@
 
 ## Overview
 
-DarkClippy now supports integration with MCP (Model Context Protocol) servers, allowing you to extend Clippy's capabilities with external tools for weather, news, geolocation, and more.
+DarkClippy supports integration with MCP (Model Context Protocol) servers, allowing you to extend Clippy's capabilities with external tools for weather, news, geolocation, and more. The implementation uses a simple, self-contained approach with **no external dependencies** - just configure and run!
+
+## How It Works
+
+DarkClippy uses a custom stdio-based client that:
+1. Spawns MCP server processes (like `npx @modelcontextprotocol/server-weather`)
+2. Communicates via JSON-RPC over stdin/stdout
+3. Converts MCP tools into Semantic Kernel plugins
+4. Makes them available to Dark Clippy during conversations
+
+**No Gateway Required!** The solution works out-of-the-box when you pull the repo - just enable a server in configuration and it will automatically start.
+
+## Prerequisites
+
+To use MCP servers, you need:
+- **Node.js and npm** (for npx-based MCP servers)
+- **Internet connection** (for npx to download packages on first run)
+
+That's it! No reverse proxy setup, no Gateway installation, no complicated configuration.
 
 ## Configuration
 
@@ -11,10 +29,11 @@ MCP servers are configured in `appsettings.json` under the `McpServers` section.
 - **Name**: Unique identifier for the server
 - **Description**: Human-readable description of the server's capabilities
 - **ServerType**: Type of server transport (currently supports "stdio")
-- **Command**: Command to execute to start the MCP server
+- **Command**: Command to execute to start the MCP server (e.g., "npx")
 - **Arguments**: Array of arguments to pass to the command
 - **EnvironmentVariables**: Dictionary of environment variables (optional)
-- **Enabled**: Boolean flag to enable/disable the server
+- **WorkingDirectory**: Working directory for the server process (optional)
+- **Enabled**: Boolean flag to enable/disable the server (default: false for safety)
 
 ### Example Configuration
 
