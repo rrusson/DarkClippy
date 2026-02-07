@@ -29,7 +29,7 @@ namespace ClippyWeb.Tests.Controllers
 		{
 			_mockChatClient = new Mock<IChatClient>();
 			_mockChatClientFactory = new Mock<IChatClientFactory>();
-			_mockChatClientFactory.Setup(f => f.GetOrCreateClient(It.IsAny<string>())).Returns(_mockChatClient.Object);
+			_mockChatClientFactory.Setup(f => f.GetOrCreateClientAsync(It.IsAny<string>())).ReturnsAsync(_mockChatClient.Object);
 			_memoryCache = new MemoryCache(new MemoryCacheOptions());
 			_mockConfiguration = new Mock<IConfiguration>();
 

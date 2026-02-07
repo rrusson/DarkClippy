@@ -27,47 +27,47 @@ namespace ClippyWeb.Tests
 		}
 
 		[TestMethod]
-		public void IfSessionKeyIsProvidedThenClientIsReturned()
+		public async Task IfSessionKeyIsProvidedThenClientIsReturned()
 		{
 			var factory = new ChatClientFactory(TestApiUrl, TestModel, TestApiKey, _cache);
 
-			var client = factory.GetOrCreateClient("test-session");
+			var client = await factory.GetOrCreateClientAsync("test-session");
 
 			Assert.IsNotNull(client);
 		}
 
 		[TestMethod]
-		public void IfSameSessionKeyIsUsedThenSameClientIsReturned()
+		public async Task IfSameSessionKeyIsUsedThenSameClientIsReturned()
 		{
 			var factory = new ChatClientFactory(TestApiUrl, TestModel, TestApiKey, _cache);
 
-			var client1 = factory.GetOrCreateClient("test-session");
-			var client2 = factory.GetOrCreateClient("test-session");
+			var client1 = await factory.GetOrCreateClientAsync("test-session");
+			var client2 = await factory.GetOrCreateClientAsync("test-session");
 
 			Assert.AreSame(client1, client2);
 		}
 
 		[TestMethod]
-		public void IfDifferentSessionKeysAreUsedThenDifferentClientsAreReturned()
+		public async Task IfDifferentSessionKeysAreUsedThenDifferentClientsAreReturned()
 		{
 			var factory = new ChatClientFactory(TestApiUrl, TestModel, TestApiKey, _cache);
 
-			var client1 = factory.GetOrCreateClient("session-1");
-			var client2 = factory.GetOrCreateClient("session-2");
+			var client1 = await factory.GetOrCreateClientAsync("session-1");
+			var client2 = await factory.GetOrCreateClientAsync("session-2");
 
 			Assert.AreNotSame(client1, client2);
 		}
 
 		[TestMethod]
-		public void IfMultipleSessionsAreConcurrentThenFactoryIsThreadSafe()
+		public async Task IfMultipleSessionsAreConcurrentThenFactoryIsThreadSafe()
 		{
 			var factory = new ChatClientFactory(TestApiUrl, TestModel, TestApiKey, _cache);
 			var clients = new List<IChatClient>();
 			var lockObj = new object();
 
-			Parallel.For(0, 10, i =>
+			Parallel.For(0, 10, async i =>
 			{
-				var client = factory.GetOrCreateClient($"session-{i % 3}");
+				var client = await factory.GetOrCreateClientAsync($"session-{i % 3}");
 				lock (lockObj)
 				{
 					clients.Add(client);
