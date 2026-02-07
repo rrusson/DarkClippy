@@ -44,11 +44,11 @@ namespace ClippyWeb
 				return new SemanticKernelHelper.OllamaCapabilityDetector(serviceUrl, logger);
 			});
 
+			// Initialize MCP servers early (before DI registration)
+			var mcpRegistry = await InitializeMcpServersAsync(builder).ConfigureAwait(false);
+
 			// Set up MCP Server Registry
-			builder.Services.AddSingleton<IMcpServerRegistry>(async provider =>
-			{
-				return await AddMcpServersAsync(builder, provider).ConfigureAwait(false);
-			});
+			builder.Services.AddSingleton<IMcpServerRegistry>(mcpRegistry);
 
 			builder.Services.AddSingleton<IChatClientFactory>(provider =>
 			{
@@ -56,11 +56,15 @@ namespace ClippyWeb
 			});
 		}
 
-		private static async Task<SemanticKernelHelper.McpServerRegistry> AddMcpServersAsync(WebApplicationBuilder builder, IServiceProvider provider)
+		private static async Task<SemanticKernelHelper.McpServerRegistry> InitializeMcpServersAsync(WebApplicationBuilder builder)
 		{
 			var registry = new SemanticKernelHelper.McpServerRegistry();
-			var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+			
+			// Build a temporary service provider to get logger
+			using var tempProvider = builder.Services.BuildServiceProvider();
+			var loggerFactory = tempProvider.GetRequiredService<ILoggerFactory>();
 			var logger = loggerFactory.CreateLogger("DarkClippy.MCP");
+			
 			var mcpConfigs = builder.Configuration.GetSection("McpServers").Get<List<SemanticKernelHelper.McpServerConfiguration>>();
 
 			if (mcpConfigs != null)
@@ -71,19 +75,19 @@ namespace ClippyWeb
 					{
 						try
 						{
-							var mcpClient = new SemanticKernelHelper.McpGatewayClient(config, logger);
-							await mcpClient.InitializeAsync().ConfigureAwait(false);
-							registry.Register(mcpClient);
-							Log.Information("DarkClippy: MCP client '{Name}' registered and initialized", config.Name);
+							var mcpServer = new SemanticKernelHelper.StdioMcpServer(config, logger);
+							await mcpServer.InitializeAsync().ConfigureAwait(false);
+							registry.Register(mcpServer);
+							Log.Information("DarkClippy: MCP server '{Name}' registered and initialized", config.Name);
 						}
 						catch (Exception ex)
 						{
-							Log.Warning(ex, "DarkClippy: Failed to initialize MCP client '{Name}', skipping", config.Name);
+							Log.Warning(ex, "DarkClippy: Failed to initialize MCP server '{Name}', skipping", config.Name);
 						}
 					}
 					else
 					{
-						Log.Information("DarkClippy: MCP client '{Name}' is disabled, skipping", config.Name);
+						Log.Information("DarkClippy: MCP server '{Name}' is disabled, skipping", config.Name);
 					}
 				}
 			}
