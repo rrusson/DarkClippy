@@ -38,6 +38,7 @@ namespace SemanticKernelHelper
 					SlidingExpiration = TimeSpan.FromMinutes(30),
 					Priority = CacheItemPriority.Normal
 				};
+
 				_cache.Set(cacheKey, newClient, cacheOptions);
 				return newClient;
 			}
