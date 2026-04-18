@@ -95,7 +95,7 @@ namespace ClippyWeb.Tests.Util
 			_mockConfiguration.Setup(x => x["ServiceUrl"]).Returns(serviceUrl);
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<UriFormatException>(() => _sut.ValidateConnectionAsync(_mockConfiguration.Object));
+			await Assert.ThrowsAsync<UriFormatException>(() => _sut.ValidateConnectionAsync(_mockConfiguration.Object));
 		}
 	}
 }

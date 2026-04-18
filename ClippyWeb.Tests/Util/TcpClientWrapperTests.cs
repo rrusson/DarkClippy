@@ -246,7 +246,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<ArgumentNullException>(async () =>
+			await Assert.ThrowsAsync<ArgumentNullException>(async () =>
 			{
 				await sut.ConnectAsync(host!, port, cancellationToken);
 			});
@@ -265,7 +265,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(async () =>
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
@@ -284,7 +284,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<SocketException>(async () =>
+			await Assert.ThrowsAsync<SocketException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
@@ -303,7 +303,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(async () =>
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
@@ -322,7 +322,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(async () =>
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
@@ -341,7 +341,7 @@ namespace ClippyWeb.Util.UnitTests
 			var cancellationToken = CancellationToken.None;
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<ArgumentOutOfRangeException>(async () =>
+			await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
@@ -361,7 +361,7 @@ namespace ClippyWeb.Util.UnitTests
 			cts.Cancel();
 
 			// Act & Assert
-			await Assert.ThrowsExceptionAsync<TaskCanceledException>(async () =>
+			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cts.Token);
 			});
@@ -382,7 +382,7 @@ namespace ClippyWeb.Util.UnitTests
 
 			// Act & Assert
 			// Empty host should throw an exception from the underlying TcpClient
-			await Assert.ThrowsExceptionAsync<ArgumentException>(async () =>
+			await Assert.ThrowsAsync<ArgumentException>(async () =>
 			{
 				await sut.ConnectAsync(host, port, cancellationToken);
 			});
